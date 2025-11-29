@@ -51,13 +51,13 @@ const popup = $("popup"),
 // =======================================================
 let cokSatanUrunler = [];
 let digerUrunler = [];
-let digerSecimler = []; // diğer ürün listesi (eklenenler)
+let digerSecimler = [];
 
 let manualFreeMode = false;
 let autoCalcLocked = false;
 let currentUser = null;
 let appInitialized = false;
-let lastQueried = ""; // tel lookup için
+let lastQueried = "";
 
 const STORAGE_KEY = "siparisUser";
 
@@ -99,12 +99,23 @@ function loadUser(){ try{ const raw=localStorage.getItem(STORAGE_KEY); if(!raw) 
 
 async function handleLogin(e){
   e.preventDefault();
-  loginMessage.textContent="Giriş yapılıyor…"; loginMessage.className="text-center text-blue-300 text-sm";
+  loginMessage.textContent="Giriş yapılıyor…";
+  loginMessage.className="text-center text-blue-300 text-sm";
+
   try{
     const user = await loginUser(loginUsername.value.trim(), loginPassword.value);
     if(!user){ showLogin("Kullanıcı adı veya şifre hatalı."); return; }
-    currentUser=user; saveUser(user); updateUserUI(user); showApp(); setSiparisiAlan(user); await initApp();
-  }catch{ showLogin("Giriş hatası."); }
+
+    currentUser=user;
+    saveUser(user);
+    updateUserUI(user);
+    showApp();
+    setSiparisiAlan(user);
+    await initApp();
+
+  }catch{
+    showLogin("Giriş hatası.");
+  }
 }
 
 // =======================================================
@@ -120,13 +131,15 @@ async function loadCities(){
   });
 }
 async function loadDistrictsUI(cityId){
-  ilceEl.disabled = true; ilceEl.innerHTML=`<option value="">Yükleniyor…</option>`;
+  ilceEl.disabled = true;
+  ilceEl.innerHTML = `<option value="">Yükleniyor…</option>`;
   const d = await getDistricts(cityId);
   ilceEl.innerHTML = `<option value="">İlçe seçiniz…</option>`;
   d.forEach(x=>{
     const o=document.createElement("option");
     o.value=`${x.id}|${x.code}|${x.name}`;
-    o.textContent=x.name; ilceEl.appendChild(o);
+    o.textContent=x.name;
+    ilceEl.appendChild(o);
   });
   ilceEl.disabled=false;
 }
@@ -137,14 +150,15 @@ async function loadDistrictsUI(cityId){
 async function loadUrunlerUI(){
   const firma = firmaEl.value; if(!firma) return;
   const items = await getUrunler(firma);
+
   cokSatanUrunler = items.filter(u=>u.cok_satan);
   digerUrunler = items.filter(u=>!u.cok_satan);
+
   renderCokSatan();
   renderDigerDropdown();
   autoRecalc();
 }
 
-// Çok satan render
 function renderCokSatan(){
   cokSatanContainer.innerHTML="";
   cokSatanUrunler.forEach(u=>{
@@ -157,7 +171,8 @@ function renderCokSatan(){
   });
 }
 function renderKgRow(u,kg,fiyat){
-  const line=document.createElement("div"); line.className="product-line";
+  const line=document.createElement("div");
+  line.className="product-line";
   line.innerHTML=`
     <label class="flex items-center gap-2">
       <input type="checkbox" class="kg-check" data-id="${u.id}" data-kg="${kg}">
@@ -165,12 +180,15 @@ function renderKgRow(u,kg,fiyat){
     </label>
     <div class="flex items-center gap-2">
       <span class="text-xs">Adet:</span>
-      <input type="number" value="1" min="1" class="kg-adet" data-id="${u.id}" data-kg="${kg}">
-    </div>`;
+      <input type="number" value="1" min="1"
+             class="kg-adet"
+             data-id="${u.id}"
+             data-kg="${kg}">
+    </div>
+  `;
   return line;
 }
 
-// Diğer ürünler dropdown + radio kg
 function renderDigerDropdown(){
   digerSelect.innerHTML="";
   digerUrunler.forEach(u=>{
@@ -192,21 +210,30 @@ function updateDigerKgOptions(){
     <label class="flex items-center gap-2">
       <input type="radio" name="digerKg" value="5|${u.fiyat_5}">
       <span>5 kg — ${u.fiyat_5} TL</span>
-    </label>`;
+    </label>
+  `;
 }
-digerSelect.onchange = updateDigerKgOptions;
+digerSelect.onchange=updateDigerKgOptions;
 
 digerEkleBtn.onclick = (e)=>{
-  e.preventDefault(); // N8N'e gitmesin
+  e.preventDefault();
   const id=Number(digerSelect.value);
   const u=digerUrunler.find(x=>x.id===id);
   if(!u) return;
+
   const kgRadio=document.querySelector('input[name="digerKg"]:checked');
   if(!kgRadio) return;
+
   const [kg,fiyat]=kgRadio.value.split("|").map(Number);
   const adet=Number(digerAdet.value||1);
-  digerSecimler.push({ id:u.id, ad:u.ad, kg, adet, fiyat, toplam:fiyat*adet });
-  renderDigerListe(); autoRecalc();
+
+  digerSecimler.push({
+    id:u.id, ad:u.ad, kg, adet,
+    fiyat, toplam:fiyat*adet
+  });
+
+  renderDigerListe();
+  autoRecalc();
 };
 
 function renderDigerListe(){
@@ -219,14 +246,17 @@ function renderDigerListe(){
       <div>${x.kg} kg</div>
       <div>x${x.adet}</div>
       <div>${x.toplam} TL</div>
-      <button type="button" class="remove-btn" data-index="${i}">Sil</button>`;
+      <button type="button" class="remove-btn" data-index="${i}">Sil</button>
+    `;
     digerListeContainer.appendChild(row);
   });
+
   document.querySelectorAll(".remove-btn").forEach(b=>{
     b.onclick=()=>{
       const i=Number(b.dataset.index);
       digerSecimler.splice(i,1);
-      renderDigerListe(); autoRecalc();
+      renderDigerListe();
+      autoRecalc();
     };
   });
 }
@@ -238,19 +268,17 @@ function hesaplaToplam(){
   if(manualFreeMode) return 0;
   let total=0;
 
-  // Çok satanlar
   document.querySelectorAll(".kg-check:checked").forEach(chk=>{
-    const id=chk.dataset.id; const kg=Number(chk.dataset.kg);
+    const id=chk.dataset.id;
+    const kg=Number(chk.dataset.kg);
     const adetEl=document.querySelector(`.kg-adet[data-id="${id}"][data-kg="${kg}"]`);
     const adet=Number(adetEl.value||1);
     const u=cokSatanUrunler.find(x=>x.id==id);
-    if(!u) return;
     const fiyat = kg===10 ? u.fiyat_10 : u.fiyat_5;
     total += fiyat*adet;
   });
 
-  // Diğerler
-  digerSecimler.forEach(x=> total += x.toplam);
+  digerSecimler.forEach(x=> total+=x.toplam);
 
   return total;
 }
@@ -265,58 +293,72 @@ function autoRecalc(){
 // =======================================================
 btnUcretsiz.onclick = ()=>{
   manualFreeMode = !manualFreeMode;
+
   if(manualFreeMode){
-    toplamEl.value = 0;
-    odemeEl.value = "";
-    odemeEl.disabled = true;
-    autoCalcLocked = true; // editten çık
-    btnUcretsiz.textContent = "Ücretli Yap";
+    toplamEl.value=0;
+    odemeEl.disabled=true;
+    autoCalcLocked = true;
+    btnUcretsiz.textContent="Ücretli Yap";
   }else{
     odemeEl.disabled=false;
-    btnUcretsiz.textContent="Ücretsiz / Değişim";
     autoCalcLocked=false;
+    btnUcretsiz.textContent="Ücretsiz / Değişim";
     autoRecalc();
   }
 };
 
 // =======================================================
-// TELEFON → MÜŞTERİ LOOKUP (tam 10 hane)
+// TELEFON LOOKUP (10 hane)
 // =======================================================
 async function handleTelLookup(){
   let raw=telEl.value.replace(/\D/g,"").slice(0,10);
   telEl.value=raw;
-  if(raw.length!==10){ musteriHint.textContent=""; return; }
+
+  if(raw.length!==10){
+    musteriHint.textContent="";
+    return;
+  }
   if(raw===lastQueried) return;
   lastQueried=raw;
 
   musteriHint.textContent="Müşteri sorgulanıyor…";
+
   try{
     const m = await findMusteriByTel(raw);
-    if(!m){ musteriHint.textContent="Bu numara kayıtlı değil."; return; }
+    if(!m){
+      musteriHint.textContent="Bu numara kayıtlı değil.";
+      return;
+    }
 
     adEl.value = m.ad_soyad || "";
     adresEl.value = m.adres || "";
 
-    // Firma → sadece ürünleri yükler; şehir/ilçe dokunulmaz
-    if(m.firma){ firmaEl.value = m.firma; await loadUrunlerUI(); }
+    if(m.firma){
+      firmaEl.value=m.firma;
+      await loadUrunlerUI();
+    }
 
-    // Şehir/İlçe
     if(m.sehir){
       const cityOpt=[...sehirEl.options].find(o=>o.textContent===m.sehir);
       if(cityOpt){
-        sehirEl.value=cityOpt.value; await loadDistrictsUI(cityOpt.value);
+        sehirEl.value=cityOpt.value;
+        await loadDistrictsUI(cityOpt.value);
+
         const ilOpt=[...ilceEl.options].find(o=>o.textContent===m.ilce);
         if(ilOpt) ilceEl.value=ilOpt.value;
       }
     }
 
     musteriHint.textContent="Müşteri bilgileri yüklendi.";
-  }catch{ musteriHint.textContent="Müşteri sorgusunda hata."; }
+
+  }catch(err){
+    musteriHint.textContent="Sorgu hatası.";
+  }
 }
 telEl.addEventListener("input", handleTelLookup);
 
 // =======================================================
-// SUBMIT (N8N INSERT/UPDATE kararı verir)
+// SUBMIT (N8N’e gider)
 // =======================================================
 $("form").onsubmit = async (e)=>{
   e.preventDefault();
@@ -328,40 +370,48 @@ $("form").onsubmit = async (e)=>{
 
   const secilen=[];
 
-  // Çok satan
   document.querySelectorAll(".kg-check:checked").forEach(chk=>{
-    const id=chk.dataset.id; const kg=Number(chk.dataset.kg);
+    const id=chk.dataset.id;
+    const kg=Number(chk.dataset.kg);
     const adetEl=document.querySelector(`.kg-adet[data-id="${id}"][data-kg="${kg}"]`);
     const adet=Number(adetEl.value||1);
     const u=cokSatanUrunler.find(x=>x.id==id);
     const fiyat = kg===10 ? u.fiyat_10 : u.fiyat_5;
-    secilen.push({ id:u.id, ad:u.ad, kg, fiyat: manualFreeMode?0:fiyat, adet, toplam: manualFreeMode?0:fiyat*adet });
+
+    secilen.push({
+      id:u.id, ad:u.ad, kg,
+      fiyat: manualFreeMode?0:fiyat,
+      adet, toplam: manualFreeMode?0:fiyat*adet
+    });
   });
 
-  // Diğer
   digerSecimler.forEach(x=>{
-    secilen.push({ id:x.id, ad:x.ad, kg:x.kg, fiyat: manualFreeMode?0:x.fiyat, adet:x.adet, toplam: manualFreeMode?0:x.toplam });
+    secilen.push({
+      id:x.id, ad:x.ad, kg:x.kg,
+      fiyat: manualFreeMode?0:x.fiyat,
+      adet:x.adet, toplam: manualFreeMode?0:x.toplam
+    });
   });
 
   const kayit={
-    siparis_no: siparisNo,
-    musteri_tel: telEl.value,
-    musteri_ad_soyad: adEl.value,
-    musteri_adres: adresEl.value,
-    sehir: sehirAd,
-    ilce: ilceAd,
-    firma: firmaEl.value,
-    siparis_alan: alanEl.value,
-    secilen_urunler: JSON.stringify(secilen),
-    toplam_tutar: manualFreeMode?0:Number(toplamEl.value),
-    odeme_turu: manualFreeMode?null:odemeEl.value,
-    notlar: notlarEl.value
+    siparis_no:siparisNo,
+    musteri_tel:telEl.value,
+    musteri_ad_soyad:adEl.value,
+    musteri_adres:adresEl.value,
+    sehir:sehirAd,
+    ilce:ilceAd,
+    firma:firmaEl.value,
+    siparis_alan:alanEl.value,
+    secilen_urunler:JSON.stringify(secilen),
+    toplam_tutar:manualFreeMode?0:Number(toplamEl.value),
+    odeme_turu:manualFreeMode?null:odemeEl.value,
+    notlar:notlarEl.value
   };
 
   try{
     await insertFormSiparis(kayit);
     sonucEl.className="text-sm text-emerald-400";
-    sonucEl.textContent="Gönderildi (N8N işliyor).";
+    sonucEl.textContent="Gönderildi.";
     autoCalcLocked=false;
   }catch{
     sonucEl.className="text-sm text-red-400";
@@ -370,40 +420,44 @@ $("form").onsubmit = async (e)=>{
 };
 
 // =======================================================
-// SİPARİŞ NO → ENTER/BLUR
+// SİPARİŞ NO
 // =======================================================
 siparisNoEl.onblur = loadSiparisByNo;
 siparisNoEl.addEventListener("keydown",(e)=>{
   if(e.key==="Enter"){ e.preventDefault(); loadSiparisByNo(); }
 });
 
-// =======================================================
-// SİPARİŞ NO → TÜM BİLGİLERİ DOLDUR (A senaryosu)
-// =======================================================
 async function loadSiparisByNo(){
-  const no=siparisNoEl.value.trim(); if(!no) return;
+  const no=siparisNoEl.value.trim();
+  if(!no) return;
 
   try{
-    const rows = await sbFetch("tum_siparisler", { query: `siparis_no=eq.${no}&select=*` });
-    if(!rows.length){ showPopup("Sipariş bulunamadı.","error"); return; }
+    const rows = await sbFetch("tum_siparisler", {
+      query:`siparis_no=eq.${no}&select=*`
+    });
+
+    if(!rows.length){
+      showPopup("Sipariş bulunamadı.","error");
+      return;
+    }
+
     const d=rows[0];
 
-    // Yetki
     if(!currentUser.admin && d.siparis_alan !== currentUser.username){
       showPopup("Bu sipariş size ait değildir.","error");
       return;
     }
 
-    // Müşteri temel
-    telEl.value = d.musteri_tel || "";
-    adEl.value = d.ad_soyad || "";
-    adresEl.value = d.adres || "";
-    notlarEl.value = d.notlar || "";
+    telEl.value=d.musteri_tel || "";
+    adEl.value=d.ad_soyad || "";
+    adresEl.value=d.adres || "";
+    notlarEl.value=d.notlar || "";
 
-    // Firma → ürünler
-    if(d.firma){ firmaEl.value=d.firma; await loadUrunlerUI(); }
+    if(d.firma){
+      firmaEl.value=d.firma;
+      await loadUrunlerUI();
+    }
 
-    // Şehir / İlçe
     if(d.sehir){
       const cityOpt=[...sehirEl.options].find(o=>o.textContent===d.sehir);
       if(cityOpt){
@@ -414,46 +468,71 @@ async function loadSiparisByNo(){
       }
     }
 
-    // Siparişi Alan
     if(!currentUser.admin){
-      fillSelect(alanEl,[currentUser.username],""); alanEl.disabled=true;
+      fillSelect(alanEl,[currentUser.username],"");
+      alanEl.disabled=true;
     }else{
       setSiparisiAlan(currentUser);
-      if(d.siparis_alan) alanEl.value = d.siparis_alan;
+      if(d.siparis_alan) alanEl.value=d.siparis_alan;
     }
 
-    // Ürünleri forma dök
-    digerSecimler=[]; uncheckAllCokSatan();
+    digerSecimler=[];
+    uncheckAllCokSatan();
+
     try{
-      const urunler = Array.isArray(d.secilen_urunler) ? d.secilen_urunler : JSON.parse(d.secilen_urunler||"[]");
+      const urunler = Array.isArray(d.secilen_urunler)
+        ? d.secilen_urunler
+        : JSON.parse(d.secilen_urunler||"[]");
+
       urunler.forEach(it=>{
         const cs=cokSatanUrunler.find(x=>x.id==it.id);
+
         if(cs){
-          const chk=cokSatanContainer.querySelector(`.kg-check[data-id="${it.id}"][data-kg="${it.kg}"]`);
-          const adetInp=cokSatanContainer.querySelector(`.kg-adet[data-id="${it.id}"][data-kg="${it.kg}"]`);
+          const chk=cokSatanContainer.querySelector(
+            `.kg-check[data-id="${it.id}"][data-kg="${it.kg}"]`);
+          const adetInp=cokSatanContainer.querySelector(
+            `.kg-adet[data-id="${it.id}"][data-kg="${it.kg}"]`);
+
           if(chk) chk.checked=true;
           if(adetInp) adetInp.value=it.adet||1;
+
         }else{
           digerSecimler.push({
-            id: it.id, ad: it.ad, kg: Number(it.kg),
-            adet: Number(it.adet||1), fiyat: Number(it.fiyat||0), toplam: Number(it.toplam||0)
+            id:it.id, ad:it.ad, kg:Number(it.kg),
+            adet:Number(it.adet||1),
+            fiyat:Number(it.fiyat||0),
+            toplam:Number(it.toplam||0)
           });
         }
       });
+
       renderDigerListe();
-    }catch{ renderDigerListe(); }
 
-    // Toplam / Ödeme
-    if(Number(d.toplam_tutar)===0){
-      manualFreeMode=true; odemeEl.disabled=true; btnUcretsiz.textContent="Ücretli Yap"; toplamEl.value=0;
-    }else{
-      manualFreeMode=false; odemeEl.disabled=false; btnUcretsiz.textContent="Ücretsiz / Değişim"; toplamEl.value=d.toplam_tutar||hesaplaToplam();
+    }catch{
+      renderDigerListe();
     }
-    if(d.odeme_turu) odemeEl.value=d.odeme_turu;
 
+    if(Number(d.toplam_tutar)===0){
+      manualFreeMode=true;
+      odemeEl.disabled=true;
+      btnUcretsiz.textContent="Ücretli Yap";
+      toplamEl.value=0;
+
+    }else{
+      manualFreeMode=false;
+      odemeEl.disabled=false;
+      btnUcretsiz.textContent="Ücretsiz / Değişim";
+      toplamEl.value=d.toplam_tutar || hesaplaToplam();
+    }
+
+    if(d.odeme_turu) odemeEl.value=d.odeme_turu;
     toplamHint.textContent="Siparişten yüklendi.";
-  }catch{ showPopup("Sipariş yüklenemedi.","error"); }
+
+  }catch{
+    showPopup("Sipariş yüklenemedi.","error");
+  }
 }
+
 function uncheckAllCokSatan(){
   cokSatanContainer.querySelectorAll('.kg-check').forEach(c=>c.checked=false);
   cokSatanContainer.querySelectorAll('.kg-adet').forEach(i=>i.value=1);
@@ -463,8 +542,10 @@ function uncheckAllCokSatan(){
 // SİPARİŞ İPTAL
 // =======================================================
 btnIptal.onclick = async ()=>{
-  const no=siparisNoEl.value.trim(); if(!no){ showPopup("Önce sipariş no gir.","error"); return; }
-  const neden = prompt("İptal nedeni:"); if(neden===null) return;
+  const no=siparisNoEl.value.trim();
+  if(!no){ showPopup("Önce sipariş no gir.","error"); return; }
+  const neden = prompt("İptal nedeni:");
+  if(neden===null) return;
   await sendCancelToN8N(no, neden, currentUser.username);
   showPopup("İptal bilgisi gönderildi.","ok");
 };
@@ -473,11 +554,16 @@ btnIptal.onclick = async ()=>{
 // INIT
 // =======================================================
 async function initApp(){
-  if(appInitialized) return; appInitialized=true;
+  if(appInitialized) return;
+  appInitialized=true;
+
   fillSelect(firmaEl, ["Tasdipli","Esin","Queen"], "Firma seçiniz…");
+
   setSiparisiAlan(currentUser);
   await loadCities();
-  ilceEl.disabled=true; ilceEl.innerHTML=`<option value="">Önce şehir seçiniz…</option>`;
+
+  ilceEl.disabled=true;
+  ilceEl.innerHTML=`<option value="">Önce şehir seçiniz…</option>`;
 }
 
 // =======================================================
@@ -488,21 +574,34 @@ logoutBtn.onclick = ()=>{ localStorage.removeItem(STORAGE_KEY); location.reload(
 
 sehirEl.onchange = (e)=>{
   if(!e.target.value){
-    ilceEl.disabled=true; ilceEl.innerHTML=`<option value="">Önce şehir seçiniz…</option>`;
+    ilceEl.disabled=true;
+    ilceEl.innerHTML=`<option value="">Önce şehir seçiniz…</option>`;
     return;
   }
   loadDistrictsUI(e.target.value);
 };
+
 firmaEl.onchange = loadUrunlerUI;
 
 document.addEventListener("input", (e)=>{
-  if(e.target.classList.contains("kg-check") || e.target.classList.contains("kg-adet")) autoRecalc();
+  if(e.target.classList.contains("kg-check") ||
+     e.target.classList.contains("kg-adet")){
+    autoRecalc();
+  }
 });
+
 toplamEl.oninput = ()=>{ autoCalcLocked=true; };
 
 // Auto login
 (function(){
   const saved=loadUser();
-  if(saved){ currentUser=saved; updateUserUI(saved); showApp(); setSiparisiAlan(saved); initApp(); }
-  else { showLogin(); }
+  if(saved){
+    currentUser=saved;
+    updateUserUI(saved);
+    showApp();
+    setSiparisiAlan(saved);
+    initApp();
+  }else{
+    showLogin();
+  }
 })();
