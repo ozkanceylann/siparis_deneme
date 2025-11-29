@@ -427,111 +427,124 @@ siparisNoEl.addEventListener("keydown",(e)=>{
   if(e.key==="Enter"){ e.preventDefault(); loadSiparisByNo(); }
 });
 
-async function loadSiparisByNo(){
-  const no=siparisNoEl.value.trim();
-  if(!no) return;
+async function loadSiparisByNo() {
+  const no = siparisNoEl.value.trim();
+  if (!no) return;
 
-  try{
+  try {
+    // 1) Siparişi çek
     const rows = await sbFetch("tum_siparisler", {
-      query:`siparis_no=eq.${no}&select=*`
+      query: `siparis_no=eq.${no}&select=*`
     });
 
-    if(!rows.length){
-      showPopup("Sipariş bulunamadı.","error");
+    if (!rows.length) {
+      showPopup("Sipariş bulunamadı.", "error");
       return;
     }
 
-    const d=rows[0];
+    const d = rows[0];
 
-    if(!currentUser.admin && d.siparis_alan !== currentUser.username){
-      showPopup("Bu sipariş size ait değildir.","error");
+    // 2) YETKİ KONTROLÜ — İLK İŞ
+    if (!currentUser.admin && d.siparis_alan !== currentUser.username) {
+      showPopup(`Bu sipariş size ait değildir (${d.siparis_alan}).`, "error");
       return;
     }
 
-    telEl.value=d.musteri_tel || "";
-    adEl.value=d.ad_soyad || "";
-    adresEl.value=d.adres || "";
-    notlarEl.value=d.notlar || "";
+    // 3) Temel müşteri bilgileri
+    telEl.value = d.musteri_tel || "";
+    adEl.value = d.ad_soyad || "";
+    adresEl.value = d.adres || "";
+    notlarEl.value = d.notlar || "";
 
-    if(d.firma){
-      firmaEl.value=d.firma;
+    // 4) Firma → ürünleri yükle
+    if (d.firma) {
+      firmaEl.value = d.firma;
       await loadUrunlerUI();
     }
 
-    if(d.sehir){
-      const cityOpt=[...sehirEl.options].find(o=>o.textContent===d.sehir);
-      if(cityOpt){
-        sehirEl.value=cityOpt.value;
+    // 5) Şehir / ilçe
+    if (d.sehir) {
+      const cityOpt = [...sehirEl.options].find(o => o.textContent === d.sehir);
+      if (cityOpt) {
+        sehirEl.value = cityOpt.value;
         await loadDistrictsUI(cityOpt.value);
-        const ilOpt=[...ilceEl.options].find(o=>o.textContent===d.ilce);
-        if(ilOpt) ilceEl.value=ilOpt.value;
+
+        const ilOpt = [...ilceEl.options].find(o => o.textContent === d.ilce);
+        if (ilOpt) ilceEl.value = ilOpt.value;
       }
     }
 
-    if(!currentUser.admin){
-      fillSelect(alanEl,[currentUser.username],"");
-      alanEl.disabled=true;
-    }else{
-      setSiparisiAlan(currentUser);
-      if(d.siparis_alan) alanEl.value=d.siparis_alan;
+    // 6) Siparisi Alan
+    if (!currentUser.admin) {
+      fillSelect(alanEl, [currentUser.username], "");
+      alanEl.value = currentUser.username;
+      alanEl.disabled = true;
+    } else {
+      await setSiparisiAlan(currentUser);  // Admin tüm kullanıcıları listede görsün
+      if (d.siparis_alan) alanEl.value = d.siparis_alan;
     }
 
-    digerSecimler=[];
+    // 7) Ürünler
+    digerSecimler = [];
     uncheckAllCokSatan();
 
-    try{
+    try {
       const urunler = Array.isArray(d.secilen_urunler)
         ? d.secilen_urunler
-        : JSON.parse(d.secilen_urunler||"[]");
+        : JSON.parse(d.secilen_urunler || "[]");
 
-      urunler.forEach(it=>{
-        const cs=cokSatanUrunler.find(x=>x.id==it.id);
+      urunler.forEach(it => {
+        const cs = cokSatanUrunler.find(x => x.id == it.id);
 
-        if(cs){
-          const chk=cokSatanContainer.querySelector(
-            `.kg-check[data-id="${it.id}"][data-kg="${it.kg}"]`);
-          const adetInp=cokSatanContainer.querySelector(
-            `.kg-adet[data-id="${it.id}"][data-kg="${it.kg}"]`);
+        if (cs) {
+          const chk = cokSatanContainer.querySelector(
+            `.kg-check[data-id="${it.id}"][data-kg="${it.kg}"]`
+          );
+          const adetInp = cokSatanContainer.querySelector(
+            `.kg-adet[data-id="${it.id}"][data-kg="${it.kg}"]`
+          );
 
-          if(chk) chk.checked=true;
-          if(adetInp) adetInp.value=it.adet||1;
-
-        }else{
+          if (chk) chk.checked = true;
+          if (adetInp) adetInp.value = it.adet || 1;
+        } else {
           digerSecimler.push({
-            id:it.id, ad:it.ad, kg:Number(it.kg),
-            adet:Number(it.adet||1),
-            fiyat:Number(it.fiyat||0),
-            toplam:Number(it.toplam||0)
+            id: it.id,
+            ad: it.ad,
+            kg: Number(it.kg),
+            adet: Number(it.adet || 1),
+            fiyat: Number(it.fiyat || 0),
+            toplam: Number(it.toplam || 0)
           });
         }
       });
 
       renderDigerListe();
-
-    }catch{
+    } catch {
       renderDigerListe();
     }
 
-    if(Number(d.toplam_tutar)===0){
-      manualFreeMode=true;
-      odemeEl.disabled=true;
-      btnUcretsiz.textContent="Ücretli Yap";
-      toplamEl.value=0;
-
-    }else{
-      manualFreeMode=false;
-      odemeEl.disabled=false;
-      btnUcretsiz.textContent="Ücretsiz / Değişim";
-      toplamEl.value=d.toplam_tutar || hesaplaToplam();
+    // 8) Ücretsiz / ücretli
+    if (Number(d.toplam_tutar) === 0) {
+      manualFreeMode = true;
+      odemeEl.disabled = true;
+      btnUcretsiz.textContent = "Ücretli Yap";
+      toplamEl.value = 0;
+    } else {
+      manualFreeMode = false;
+      odemeEl.disabled = false;
+      btnUcretsiz.textContent = "Ücretsiz / Değişim";
+      toplamEl.value = d.toplam_tutar || hesaplaToplam();
     }
 
-    if(d.odeme_turu) odemeEl.value=d.odeme_turu;
-    toplamHint.textContent="Siparişten yüklendi.";
+    if (d.odeme_turu) odemeEl.value = d.odeme_turu;
 
-  }catch{
-    showPopup("Sipariş yüklenemedi.","error");
+    toplamHint.textContent = "Sipariş yüklendi.";
+
+  } catch (err) {
+    showPopup("Sipariş yüklenemedi.", "error");
   }
 }
+
 
 function uncheckAllCokSatan(){
   cokSatanContainer.querySelectorAll('.kg-check').forEach(c=>c.checked=false);
