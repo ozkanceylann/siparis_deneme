@@ -79,16 +79,22 @@ function fillSelect(el, arr, placeholder="Seçiniz…"){
     el.appendChild(opt);
   });
 }
-function setSiparisiAlan(user){
-  if(!user.admin){ fillSelect(alanEl, [user.username], ""); alanEl.disabled = true; }
-  else { fillSelect(alanEl, SIPARISI_ALAN_LISTESI, "Seçiniz…"); alanEl.disabled = false; }
+async function setSiparisiAlan(user){
+  const users = await getAllUsers();
+  const userList = users.map(u => u.username);
+
+  if(!user.admin){
+    // Admin değil → tek seçenek kendisi
+    fillSelect(alanEl, [user.username], "");
+    alanEl.value = user.username;
+    alanEl.disabled = true;
+  } else {
+    // Admin → tüm kullanıcılar listede
+    fillSelect(alanEl, userList, "Seçiniz…");
+    alanEl.disabled = false;
+  }
 }
 
-function showPopup(msg, type="error"){
-  popupMsg.textContent = msg;
-  popupBox.style.borderColor = type==="error" ? "#b91c1c" : "#059669";
-  popup.classList.remove("hidden");
-}
 popupClose.onclick = ()=> popup.classList.add("hidden");
 
 // =======================================================
