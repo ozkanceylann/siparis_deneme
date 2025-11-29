@@ -453,6 +453,10 @@ siparisNoEl.addEventListener("keydown",(e)=>{
 async function loadSiparisByNo() {
   const no = siparisNoEl.value.trim();
   if (!no) return;
+  // Firma kilitleme — admin olmayan değiştiremesin
+if (!currentUser.admin) {
+  firmaEl.disabled = true;
+}
 
   try {
     // --- 1) Siparişi çek ---
