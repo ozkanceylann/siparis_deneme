@@ -432,7 +432,7 @@ async function loadSiparisByNo() {
   if (!no) return;
 
   try {
-    // 1) Siparişi çek
+    // --- 1) Siparişi çek ---
     const rows = await sbFetch("tum_siparisler", {
       query: `siparis_no=eq.${no}&select=*`
     });
@@ -444,25 +444,26 @@ async function loadSiparisByNo() {
 
     const d = rows[0];
 
-    // 2) YETKİ KONTROLÜ — İLK İŞ
-    if (!currentUser.admin && d.siparis_alan !== currentUser.username) {
-      showPopup(`Bu sipariş size ait değildir (${d.siparis_alan}).`, "error");
+    // --- 2) YETKİ KONTROLÜ (EN BAŞTA) ---
+    // EŞLEŞME: d.siparis_alan === currentUser.username
+    if (!currentUser.admin && d.siparis_alan?.trim() !== currentUser.username?.trim()) {
+      showPopup(`Bu sipariş size ait değildir. (${d.siparis_alan})`, "error");
       return;
     }
 
-    // 3) Temel müşteri bilgileri
+    // --- 3) Temel müşteri bilgileri ---
     telEl.value = d.musteri_tel || "";
     adEl.value = d.ad_soyad || "";
     adresEl.value = d.adres || "";
     notlarEl.value = d.notlar || "";
 
-    // 4) Firma → ürünleri yükle
+    // --- 4) Firma yükle ---
     if (d.firma) {
       firmaEl.value = d.firma;
       await loadUrunlerUI();
     }
 
-    // 5) Şehir / ilçe
+    // --- 5) Şehir / İlçe ---
     if (d.sehir) {
       const cityOpt = [...sehirEl.options].find(o => o.textContent === d.sehir);
       if (cityOpt) {
@@ -474,17 +475,20 @@ async function loadSiparisByNo() {
       }
     }
 
-    // 6) Siparisi Alan
+    // --- 6) Siparişi Alan ---
     if (!currentUser.admin) {
+      // Normal kullanıcı → sadece kendisi görür
       fillSelect(alanEl, [currentUser.username], "");
       alanEl.value = currentUser.username;
       alanEl.disabled = true;
+
     } else {
-      await setSiparisiAlan(currentUser);  // Admin tüm kullanıcıları listede görsün
+      // Admin → tüm kullanıcı listesi
+      await setSiparisiAlan(currentUser);
       if (d.siparis_alan) alanEl.value = d.siparis_alan;
     }
 
-    // 7) Ürünler
+    // --- 7) Ürünleri sıfırla ve yükle ---
     digerSecimler = [];
     uncheckAllCokSatan();
 
@@ -506,6 +510,7 @@ async function loadSiparisByNo() {
 
           if (chk) chk.checked = true;
           if (adetInp) adetInp.value = it.adet || 1;
+
         } else {
           digerSecimler.push({
             id: it.id,
@@ -523,7 +528,7 @@ async function loadSiparisByNo() {
       renderDigerListe();
     }
 
-    // 8) Ücretsiz / ücretli
+    // --- 8) Ücretsiz / Ücretli ---
     if (Number(d.toplam_tutar) === 0) {
       manualFreeMode = true;
       odemeEl.disabled = true;
@@ -544,6 +549,7 @@ async function loadSiparisByNo() {
     showPopup("Sipariş yüklenemedi.", "error");
   }
 }
+
 
 
 function uncheckAllCokSatan(){
