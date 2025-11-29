@@ -453,10 +453,6 @@ siparisNoEl.addEventListener("keydown",(e)=>{
 async function loadSiparisByNo() {
   const no = siparisNoEl.value.trim();
   if (!no) return;
-  // Firma kilitleme — admin olmayan değiştiremesin
-if (!currentUser.admin) {
-  firmaEl.disabled = true;
-}
 
   try {
     // --- 1) Siparişi çek ---
@@ -489,6 +485,11 @@ if (!currentUser.admin) {
       firmaEl.value = d.firma;
       await loadUrunlerUI();
     }
+      // Admin değilse firma değiştiremesin
+  if (!currentUser.admin) {
+    firmaEl.disabled = true;
+  }
+}
 
     // --- 5) Şehir / İlçe ---
     if (d.sehir) {
