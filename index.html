@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Sipariş Formu</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="./manifest.json" />
   <link rel="stylesheet" href="./style.css" />
+  <meta name="theme-color" content="#0D1B2E" />
 </head>
 
 <body>
@@ -20,12 +22,12 @@
     <form id="loginForm" class="space-y-4">
       <div>
         <label class="block text-sm mb-2">Kullanıcı Adı</label>
-        <input id="loginUsername" type="text" class="inpt w-full" required />
+        <input id="loginUsername" type="text" class="inpt w-full" autocomplete="username" required />
       </div>
 
       <div>
         <label class="block text-sm mb-2">Şifre</label>
-        <input id="loginPassword" type="password" class="inpt w-full" required />
+        <input id="loginPassword" type="password" class="inpt w-full" autocomplete="current-password" required />
       </div>
 
       <button class="inpt w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2">
@@ -132,7 +134,7 @@
             <label class="block text-sm mb-2">Ürün Seç</label>
             <select id="digerSelect" class="inpt w-full"></select>
 
-            <!-- KG seçenekleri -->
+            <!-- KG seçenekleri (radio) -->
             <div id="digerKgOptions" class="mt-4 space-y-3"></div>
 
             <!-- Adet -->
@@ -142,6 +144,7 @@
             </div>
 
             <button id="digerEkleBtn"
+              type="button"
               class="inpt w-full bg-emerald-700 hover:bg-emerald-800 text-white mt-4">
               Ekle
             </button>
@@ -154,20 +157,21 @@
         <!-- =========================== -->
         <!-- ÖDEME / TOPLAM -->
         <!-- =========================== -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <div>
             <label class="block text-sm mb-2">Toplam (TL)</label>
             <input id="toplam" type="number" class="inpt w-full" value="0" />
             <div id="toplamHint" class="text-xs mt-1 text-slate-400"></div>
           </div>
 
-          <div class="flex flex-col gap-3">
+          <div class="flex flex-col md:flex-row md:items-end md:justify-end gap-3">
             <button id="btnUcretsiz" type="button"
-              class="inpt bg-purple-700 hover:bg-purple-800 text-white">
+              class="inpt bg-purple-700 hover:bg-purple-800 text-white"
+              title="Ücretsiz/Değişim">
               Ücretsiz / Değişim
             </button>
 
-            <select id="odeme" class="inpt w-full">
+            <select id="odeme" class="inpt w-full md:w-40">
               <option value="Nakit">Nakit</option>
               <option value="Kart">Kart</option>
               <option value="Peşin/Ön Ödeme">Peşin/Ön Ödeme</option>
@@ -203,10 +207,26 @@
 </div>
 
 <!-- =========================== -->
+<!-- POPUP (modern uyarı) -->
+<!-- =========================== -->
+<div id="popup" class="popup hidden">
+  <div id="popupBox" class="popup-box">
+    <div id="popupMsg"></div>
+    <button id="popupClose" class="popup-close">Kapat</button>
+  </div>
+</div>
+
+<!-- =========================== -->
 <!-- SCRIPTS -->
 <!-- =========================== -->
 <script src="./api.js"></script>
 <script src="./app.js"></script>
-
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js");
+    });
+  }
+</script>
 </body>
 </html>
