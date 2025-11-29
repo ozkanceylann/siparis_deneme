@@ -51,6 +51,12 @@ async function loginUser(username, password) {
     admin: !!rows[0].admin,
   };
 }
+async function getAllUsers() {
+  return sbFetch("users", {
+    query: "select=username,admin"
+  });
+}
+
 
 // =======================================================
 // ŞEHİR – İLÇE
