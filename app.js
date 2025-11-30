@@ -603,11 +603,6 @@ async function initApp(){
   appInitialized=true;
 
   fillSelect(firmaEl, ["Tasdipli","Esin","Queen"], "Firma seçiniz…");
-  // Admin değilse firma değiştiremesin
-if (!currentUser.admin) {
-  firmaEl.disabled = true;
-}
-
 
   setSiparisiAlan(currentUser);
   await loadCities();
