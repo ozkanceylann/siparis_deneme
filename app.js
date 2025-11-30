@@ -488,11 +488,6 @@ async function loadSiparisByNo() {
       firmaEl.value = d.firma;
       await loadUrunlerUI();
     }
-    // Admin değilse firma değiştiremesin
-if (!currentUser.admin) {
-  firmaEl.disabled = true;
-}
-
 
     // --- 5) Şehir / İlçe ---
     if (d.sehir) {
