@@ -65,38 +65,6 @@ function showPopup(msg, type="ok") {
 // MENÜYÜ SIFIRLA 
 // =======================================================
 
-$("resetFormBtn").onclick = () => {
-  // Tüm formu sıfırla
-  document.getElementById("form").reset();
-
-  // Seçim listelerini temizle
-  digerSecimler = [];
-  digerListeContainer.innerHTML = "";
-
-  // Çok satanları sıfırla
-  uncheckAllCokSatan();
-
-  // Firma tekrar aktif olmasın (admin değilse)
-  if (!currentUser.admin) {
-    firmaEl.disabled = true;
-  }
-
-  // Toplamı sıfırla
-  toplamEl.value = 0;
-  toplamHint.textContent = "";
-
-  // Sipariş uyarılarını temizle
-  sonucEl.textContent = "";
-  musteriHint.textContent = "";
-
-  // İlçe kutusunu defaulta çek
-  ilceEl.innerHTML = `<option value="">Önce şehir seçiniz…</option>`;
-  ilceEl.disabled = true;
-
-  // Sipariş no temizle
-  siparisNoEl.value = "";
-};
-
 
 // =======================================================
 // GLOBALS
