@@ -60,21 +60,19 @@
         <input id="siparis_no" class="inpt w-full text-sm py-2" type="number" placeholder="No → Enter" />
       </div>
 
-      <div class="flex items-center gap-2 text-sm">
-        <span id="currentUser" class="chip font-semibold"></span>
-        <span id="adminBadge" class="chip hidden bg-blue-800 text-blue-50 border-blue-500">Admin</span>
-        <button id="logoutBtn" class="chip hover:bg-red-700 hover:text-white">Çıkış</button>
-      </div>
-    </div>
+<div class="flex items-center gap-2 text-sm relative">
+  <span id="currentUser" class="chip font-semibold"></span>
+  <span id="adminBadge" class="chip hidden bg-blue-800 text-blue-50 border-blue-500">Admin</span>
 
-    <!-- ALT SATIRDA UFACIK SIFIRLA BUTONU (SAĞA YASLI) -->
-    <div class="flex justify-end w-full">
-      <button id="resetFormBtn"
-        type="button"
-        class="chip bg-red-700 text-white hover:bg-red-800 text-xs px-3 py-1">
-        Sıfırla
-      </button>
-    </div>
+  <button id="logoutBtn" class="chip hover:bg-red-700 hover:text-white">Çıkış</button>
+
+  <!-- Yer kaplamayan, absolute pozisyon “Reset” -->
+  <button id="resetFormBtn"
+    type="button"
+    class="chip bg-red-700 text-white hover:bg-red-800 text-xs px-3 py-1 absolute right-0 top-full mt-1">
+    Sıfırla
+  </button>
+</div>
 
   </div>
 </div>
