@@ -47,35 +47,24 @@
   <div class="max-w-3xl mx-auto p-6">
     <div class="card p-6 md:p-8">
 
-<!-- HEADER -->
-<div class="flex items-start md:items-center justify-between gap-4 mb-6 flex-wrap">
-  <h1 class="text-3xl font-extrabold">SİPARİŞ FORMU</h1>
+      <!-- HEADER -->
+      <div class="flex items-start md:items-center justify-between gap-4 mb-6 flex-wrap">
+        <h1 class="text-3xl font-extrabold">SİPARİŞ FORMU</h1>
 
-  <div class="flex flex-col items-end gap-1">
-    
-    <!-- Sipariş No + Kullanıcı + Çıkış aynı satır -->
-    <div class="flex items-center gap-3">
-      <div class="w-40">
-        <label class="block text-xs mb-1">Sipariş No</label>
-        <input id="siparis_no" class="inpt w-full text-sm py-2" type="number" placeholder="No → Enter" />
+        <div class="flex items-center gap-3">
+          <div class="w-40">
+            <label class="block text-xs mb-1">Sipariş No</label>
+            <input id="siparis_no" class="inpt w-full text-sm py-2" type="number" placeholder="No → Enter" />
+          </div>
+
+          <div class="flex items-center gap-2 text-sm">
+            <span id="currentUser" class="chip font-semibold"></span>
+            <span id="adminBadge" class="chip hidden bg-blue-800 text-blue-50 border-blue-500">Admin</span>
+            <button id="logoutBtn" class="chip hover:bg-red-700 hover:text-white">Çıkış</button>
+            
+          </div>
+        </div>
       </div>
-
-<div class="flex items-center gap-2 text-sm relative">
-  <span id="currentUser" class="chip font-semibold"></span>
-  <span id="adminBadge" class="chip hidden bg-blue-800 text-blue-50 border-blue-500">Admin</span>
-
-  <button id="logoutBtn" class="chip hover:bg-red-700 hover:text-white">Çıkış</button>
-
-  <!-- Yer kaplamayan, absolute pozisyon “Reset” -->
-  <button id="resetFormBtn"
-    type="button"
-    class="chip bg-red-700 text-white hover:bg-red-800 text-xs px-3 py-1 absolute right-0 top-full mt-1">
-    Sıfırla
-  </button>
-</div>
-
-  </div>
-</div>
 
       <!-- =========================== -->
       <!-- FORM -->
