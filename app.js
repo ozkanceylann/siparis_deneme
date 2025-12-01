@@ -46,6 +46,9 @@ const popup = $("popup"),
   popupMsg = $("popupMsg"),
   popupClose = $("popupClose");
 
+// ===============================
+// POPUP FONKSİYONU EKLENTİSİ
+// ===============================
 function showPopup(msg, type="ok") {
   popupMsg.textContent = msg;
   popup.classList.remove("hidden");
@@ -58,6 +61,10 @@ function showPopup(msg, type="ok") {
     popupBox.style.color = "#e6f1ff";
   }
 }
+// =======================================================
+// MENÜYÜ SIFIRLA 
+// =======================================================
+
 
 // =======================================================
 // GLOBALS
@@ -92,16 +99,17 @@ function fillSelect(el, arr, placeholder="Seçiniz…"){
     el.appendChild(opt);
   });
 }
-
 async function setSiparisiAlan(user){
   const users = await getAllUsers();
   const userList = users.map(u => u.username);
 
   if(!user.admin){
+    // Admin değil → tek seçenek kendisi
     fillSelect(alanEl, [user.username], "");
     alanEl.value = user.username;
     alanEl.disabled = true;
   } else {
+    // Admin → tüm kullanıcılar listede
     fillSelect(alanEl, userList, "Seçiniz…");
     alanEl.disabled = false;
   }
@@ -144,12 +152,10 @@ async function loadCities(){
   sehirEl.innerHTML = `<option value="">Şehir seçiniz…</option>`;
   cities.forEach(c=>{
     const opt=document.createElement("option");
-    opt.value=c.id; 
-    opt.textContent=c.name;
+    opt.value=c.id; opt.textContent=c.name;
     sehirEl.appendChild(opt);
   });
 }
-
 async function loadDistrictsUI(cityId){
   ilceEl.disabled = true;
   ilceEl.innerHTML = `<option value="">Yükleniyor…</option>`;
@@ -190,7 +196,6 @@ function renderCokSatan(){
     cokSatanContainer.appendChild(box);
   });
 }
-
 function renderKgRow(u,kg,fiyat){
   const line=document.createElement("div");
   line.className="product-line";
@@ -214,13 +219,11 @@ function renderDigerDropdown(){
   digerSelect.innerHTML="";
   digerUrunler.forEach(u=>{
     const opt=document.createElement("option");
-    opt.value=u.id; 
-    opt.textContent=u.ad;
+    opt.value=u.id; opt.textContent=u.ad;
     digerSelect.appendChild(opt);
   });
   updateDigerKgOptions();
 }
-
 function updateDigerKgOptions(){
   const id=Number(digerSelect.value);
   const u=digerUrunler.find(x=>x.id===id);
@@ -236,7 +239,6 @@ function updateDigerKgOptions(){
     </label>
   `;
 }
-
 digerSelect.onchange=updateDigerKgOptions;
 
 digerEkleBtn.onclick = (e)=>{
@@ -306,7 +308,6 @@ function hesaplaToplam(){
 
   return total;
 }
-
 function autoRecalc(){
   if(autoCalcLocked) return;
   toplamEl.value = hesaplaToplam();
@@ -333,7 +334,7 @@ btnUcretsiz.onclick = ()=>{
 };
 
 // =======================================================
-// TELEFON LOOKUP
+// TELEFON LOOKUP (10 hane)
 // =======================================================
 async function handleTelLookup(){
   let raw=telEl.value.replace(/\D/g,"").slice(0,10);
@@ -383,33 +384,18 @@ async function handleTelLookup(){
 telEl.addEventListener("input", handleTelLookup);
 
 // =======================================================
-// SUBMIT (N8N)
+// SUBMIT (N8N’e gider)
 // =======================================================
 $("form").onsubmit = async (e)=>{
   e.preventDefault();
   sonucEl.textContent="Gönderiliyor…";
 
-  // --- ŞEHİR AYRI ---
-  const sehirId = sehirEl.value;
-  const sehirAd = sehirEl.options[sehirEl.selectedIndex]?.textContent || "";
-
-  // --- İLÇE AYRI ---
-  let ilceId = "";
-  let ilceKod = "";
-  let ilceAd = "";
-
-  if (ilceEl.value) {
-    const [id, code, name] = ilceEl.value.split("|");
-    ilceId = id;
-    ilceKod = code;
-    ilceAd = name;
-  }
-
   const siparisNo = siparisNoEl.value.trim() || null;
+  const sehirAd = sehirEl.options[sehirEl.selectedIndex]?.textContent || "";
+  const ilceAd = ilceEl.value ? ilceEl.value.split("|")[2] : "";
 
   const secilen=[];
 
-  // ÇOK SATANLAR
   document.querySelectorAll(".kg-check:checked").forEach(chk=>{
     const id=chk.dataset.id;
     const kg=Number(chk.dataset.kg);
@@ -419,46 +405,30 @@ $("form").onsubmit = async (e)=>{
     const fiyat = kg===10 ? u.fiyat_10 : u.fiyat_5;
 
     secilen.push({
-      id:u.id, 
-      ad:u.ad, 
-      kg,
+      id:u.id, ad:u.ad, kg,
       fiyat: manualFreeMode?0:fiyat,
-      adet, 
-      toplam: manualFreeMode?0:fiyat*adet
+      adet, toplam: manualFreeMode?0:fiyat*adet
     });
   });
 
-  // DİĞERLERİ
   digerSecimler.forEach(x=>{
     secilen.push({
-      id:x.id, 
-      ad:x.ad, 
-      kg:x.kg,
+      id:x.id, ad:x.ad, kg:x.kg,
       fiyat: manualFreeMode?0:x.fiyat,
-      adet:x.adet, 
-      toplam: manualFreeMode?0:x.toplam
+      adet:x.adet, toplam: manualFreeMode?0:x.toplam
     });
   });
 
-  // 🔥 JSON.stringify KALDIRILDI → Gerçek JSON array gidiyor
   const kayit={
     siparis_no:siparisNo,
     musteri_tel:telEl.value,
     musteri_ad_soyad:adEl.value,
     musteri_adres:adresEl.value,
-
-    sehir_id: sehirId,
-    sehir: sehirAd,
-
-    ilce_id: ilceId,
-    ilce_kod: ilceKod,
-    ilce: ilceAd,
-
+    sehir:sehirAd,
+    ilce:ilceAd,
     firma:firmaEl.value,
     siparis_alan:alanEl.value,
-
-    secilen_urunler: secilen,
-
+    secilen_urunler:JSON.stringify(secilen),
     toplam_tutar:manualFreeMode?0:Number(toplamEl.value),
     odeme_turu:manualFreeMode?null:odemeEl.value,
     notlar:notlarEl.value
@@ -476,15 +446,154 @@ $("form").onsubmit = async (e)=>{
 };
 
 // =======================================================
-// SİPARİŞ NO YÜKLEME
+// SİPARİŞ NO
 // =======================================================
 siparisNoEl.onblur = loadSiparisByNo;
 siparisNoEl.addEventListener("keydown",(e)=>{
   if(e.key==="Enter"){ e.preventDefault(); loadSiparisByNo(); }
 });
 
-// (Kalan loadSiparisByNo fonksiyonu aynı şekilde devam ediyor…)
+async function loadSiparisByNo() {
+  const no = siparisNoEl.value.trim();
+  if (!no) return;
 
+  try {
+    // --- 1) Siparişi çek ---
+    const rows = await sbFetch("tum_siparisler", {
+      query: `siparis_no=eq.${no}&select=*`
+    });
+
+    if (!rows.length) {
+      showPopup("Sipariş bulunamadı.", "error");
+      return;
+    }
+
+    const d = rows[0];
+
+    // --- 2) YETKİ KONTROLÜ (EN BAŞTA) ---
+    // EŞLEŞME: d.siparis_alan === currentUser.username
+    if (!currentUser.admin && d.siparis_alan?.trim() !== currentUser.username?.trim()) {
+      showPopup(`Bu sipariş size ait değildir. (${d.siparis_alan})`, "error");
+      return;
+    }
+
+    // --- 3) Temel müşteri bilgileri ---
+    telEl.value = d.musteri_tel || "";
+    adEl.value = d.ad_soyad || "";
+    adresEl.value = d.adres || "";
+    notlarEl.value = d.notlar || "";
+
+    // --- 4) Firma yükle ---
+    if (d.firma) {
+      firmaEl.value = d.firma;
+      await loadUrunlerUI();
+    }
+
+    // --- 5) Şehir / İlçe ---
+    if (d.sehir) {
+      const cityOpt = [...sehirEl.options].find(o => o.textContent === d.sehir);
+      if (cityOpt) {
+        sehirEl.value = cityOpt.value;
+        await loadDistrictsUI(cityOpt.value);
+
+        const ilOpt = [...ilceEl.options].find(o => o.textContent === d.ilce);
+        if (ilOpt) ilceEl.value = ilOpt.value;
+      }
+    }
+
+    // --- 6) Siparişi Alan ---
+    if (!currentUser.admin) {
+      // Normal kullanıcı → sadece kendisi görür
+      fillSelect(alanEl, [currentUser.username], "");
+      alanEl.value = currentUser.username;
+      alanEl.disabled = true;
+
+    } else {
+      // Admin → tüm kullanıcı listesi
+      await setSiparisiAlan(currentUser);
+      if (d.siparis_alan) alanEl.value = d.siparis_alan;
+    }
+
+    // --- 7) Ürünleri sıfırla ve yükle ---
+    digerSecimler = [];
+    uncheckAllCokSatan();
+
+    try {
+      const urunler = Array.isArray(d.secilen_urunler)
+        ? d.secilen_urunler
+        : JSON.parse(d.secilen_urunler || "[]");
+
+      urunler.forEach(it => {
+        const cs = cokSatanUrunler.find(x => x.id == it.id);
+
+        if (cs) {
+          const chk = cokSatanContainer.querySelector(
+            `.kg-check[data-id="${it.id}"][data-kg="${it.kg}"]`
+          );
+          const adetInp = cokSatanContainer.querySelector(
+            `.kg-adet[data-id="${it.id}"][data-kg="${it.kg}"]`
+          );
+
+          if (chk) chk.checked = true;
+          if (adetInp) adetInp.value = it.adet || 1;
+
+        } else {
+          digerSecimler.push({
+            id: it.id,
+            ad: it.ad,
+            kg: Number(it.kg),
+            adet: Number(it.adet || 1),
+            fiyat: Number(it.fiyat || 0),
+            toplam: Number(it.toplam || 0)
+          });
+        }
+      });
+
+      renderDigerListe();
+    } catch {
+      renderDigerListe();
+    }
+
+    // --- 8) Ücretsiz / Ücretli ---
+    if (Number(d.toplam_tutar) === 0) {
+      manualFreeMode = true;
+      odemeEl.disabled = true;
+      btnUcretsiz.textContent = "Ücretli Yap";
+      toplamEl.value = 0;
+    } else {
+      manualFreeMode = false;
+      odemeEl.disabled = false;
+      btnUcretsiz.textContent = "Ücretsiz / Değişim";
+      toplamEl.value = d.toplam_tutar || hesaplaToplam();
+    }
+
+    if (d.odeme_turu) odemeEl.value = d.odeme_turu;
+
+    toplamHint.textContent = "Sipariş yüklendi.";
+
+  } catch (err) {
+    showPopup("Sipariş yüklenemedi.", "error");
+  }
+}
+
+
+
+function uncheckAllCokSatan(){
+  cokSatanContainer.querySelectorAll('.kg-check').forEach(c=>c.checked=false);
+  cokSatanContainer.querySelectorAll('.kg-adet').forEach(i=>i.value=1);
+}
+
+// =======================================================
+// SİPARİŞ İPTAL
+// =======================================================
+btnIptal.onclick = async ()=>{
+  const no=siparisNoEl.value.trim();
+  if(!no){ showPopup("Önce sipariş no gir.","error"); return; }
+  const neden = prompt("İptal nedeni:");
+  if(neden===null) return;
+  await sendCancelToN8N(no, neden, currentUser.username);
+  showPopup("İptal bilgisi gönderildi.","ok");
+};
 
 // =======================================================
 // INIT
