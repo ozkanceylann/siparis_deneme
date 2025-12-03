@@ -178,52 +178,6 @@ select:focus {
 #btnUcretsiz:hover { transform: scale(1.02); }
 
 /* =========================================================
-   SİDEBAR FOOTER
-========================================================= */
-
-* ---- SIDEBAR FOOTER OZ YAZILIM ---- */
-.sb-footer {
-  margin-top: auto;
-  padding: 20px 10px;
-  text-align: center;
-  opacity: 0.95;
-}
-
-.oz-soft {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  color: #e9d8a6; /* soft gold */
-  text-shadow: 0 0 6px rgba(255, 215, 100, 0.5);
-}
-
-.oz-soft .line-left,
-.oz-soft .line-right {
-  width: 22px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #e9d8a6);
-  border-radius: 2px;
-}
-
-.oz-soft .line-right {
-  background: linear-gradient(90deg, #e9d8a6, transparent);
-}
-
-/* küçük parıltı animasyonu */
-.oz-soft .text {
-  animation: goldPulse 2.5s infinite ease-in-out;
-}
-
-@keyframes goldPulse {
-  0%   { text-shadow: 0 0 4px rgba(255,240,200,0.3); }
-  50%  { text-shadow: 0 0 10px rgba(255,220,120,0.8); }
-  100% { text-shadow: 0 0 4px rgba(255,240,200,0.3); }
-}
-
-/* =========================================================
    MODERN POPUP
 ========================================================= */
 
@@ -277,8 +231,6 @@ select:focus {
     font-size: 11px;
   }
 }
-/
-
 
 
 /* =========================================================

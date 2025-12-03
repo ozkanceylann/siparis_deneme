@@ -313,27 +313,6 @@ function autoRecalc(){
   toplamEl.value = hesaplaToplam();
   toplamHint.textContent="Otomatik hesaplandı.";
 }
-// =======================================================
-// POPUP
-// =======================================================
-
-function confirmPopup(message){
-  return new Promise(resolve=>{
-    popupMsg.textContent = message;
-    popup.classList.remove("hidden");
-
-    popupYes.onclick = () => {
-      popup.classList.add("hidden");
-      resolve(true);
-    };
-
-    popupNo.onclick = () => {
-      popup.classList.add("hidden");
-      resolve(false);
-    };
-  });
-}
-
 
 // =======================================================
 // ÜCRETSİZ / DEĞİŞİM
