@@ -430,6 +430,8 @@ $("form").onsubmit = async (e)=>{
     musteri_adres:adresEl.value,
     sehir:sehirAd,
     ilce:ilceAd,
+    sehir_kodu: sehirKodu,
+    ilce_kodu: ilceKodu,
     firma:firmaEl.value,
     siparis_alan:alanEl.value,
     secilen_urunler:JSON.stringify(secilen),
