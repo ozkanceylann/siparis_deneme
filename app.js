@@ -393,10 +393,9 @@ $("form").onsubmit = async (e)=>{
 
   const siparisNo = siparisNoEl.value.trim() || null;
   const sehirAd = sehirEl.options[sehirEl.selectedIndex]?.textContent || "";
-  const ilceAd = ilceEl.value ? ilceEl.value.split("|")[2] : "";
   const sehirKodu = sehirEl.value || null;
+  const ilceAd = ilceEl.value ? ilceEl.value.split("|")[2] : "";
   const ilceKodu = ilceEl.value ? ilceEl.value.split("|")[1] : null;
-
 
   const secilen=[];
 
