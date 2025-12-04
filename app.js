@@ -442,6 +442,7 @@ $("form").onsubmit = async (e)=>{
   };
 
   try{
+    console.log("GÖNDERİLEN PAYLOAD:", kayit);
     await insertFormSiparis(kayit);
     sonucEl.className="text-sm text-emerald-400";
     sonucEl.textContent="Gönderildi.";
