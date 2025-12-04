@@ -432,7 +432,8 @@ $("form").onsubmit = async (e)=>{
     secilen_urunler:JSON.stringify(secilen),
     toplam_tutar:manualFreeMode?0:Number(toplamEl.value),
     odeme_turu:manualFreeMode?null:odemeEl.value,
-    notlar:notlarEl.value
+    notlar:notlarEl.value,
+    musteri_notu: musteriNotuEl.value || ""
   };
 
   try{
