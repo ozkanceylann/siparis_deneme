@@ -484,6 +484,7 @@ async function loadSiparisByNo() {
     adEl.value = d.ad_soyad || "";
     adresEl.value = d.adres || "";
     notlarEl.value = d.notlar || "";
+    if (d.musteri_notu) musteriNotuEl.value = d.musteri_notu;
 
     // --- 4) Firma yükle ---
     if (d.firma) {
