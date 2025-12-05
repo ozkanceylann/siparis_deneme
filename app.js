@@ -30,6 +30,11 @@ const adEl = $("ad_soyad"),
   btnIptal = $("btnIptal"),
   btnUcretsiz = $("btnUcretsiz");
 
+const tabForm = $("tabForm");
+const tabGecmis = $("tabGecmis");
+const gecmisContainer = $("gecmisContainer");
+
+
 // LOGIN
 const loginScreen = $("loginScreen"),
   appContainer = $("appContainer"),
