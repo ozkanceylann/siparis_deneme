@@ -651,6 +651,26 @@ async function initApp(){
   ilceEl.innerHTML=`<option value="">Önce şehir seçiniz…</option>`;
 }
 
+tabForm.onclick = () => {
+  tabForm.classList.add("text-blue-300");
+  tabGecmis.classList.remove("text-blue-300");
+
+  appContainer.querySelector("form").classList.remove("hidden");
+  gecmisContainer.classList.add("hidden");
+};
+// =======================================================
+// GEÇMİŞ SİPARİŞ
+// =======================================================
+
+
+tabGecmis.onclick = () => {
+  tabGecmis.classList.add("text-blue-300");
+  tabForm.classList.remove("text-blue-300");
+
+  appContainer.querySelector("form").classList.add("hidden");
+  gecmisContainer.classList.remove("hidden");
+};
+
 // =======================================================
 // EVENTLER
 // =======================================================
