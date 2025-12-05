@@ -175,6 +175,22 @@ async function loadDistrictsUI(cityId){
   });
   ilceEl.disabled=false;
 }
+// =======================================================
+// GEÇMİŞ SİPARİŞ SORGU
+// =======================================================
+
+async function getSiparisGecmisi({ bas, bit, firma, alan }) {
+  let q = [];
+
+  if (bas) q.push(`tarih=gte.${bas}`);
+  if (bit) q.push(`tarih=lte.${bit}T23:59:59`);
+  if (firma) q.push(`firma=eq.${firma}`);
+  if (alan) q.push(`siparis_alan=eq.${alan}`);
+
+  return sbFetch("tum_siparisler", {
+    query: q.join("&") + "&order=tarih.desc",
+  });
+}
 
 // =======================================================
 // ÜRÜNLER
