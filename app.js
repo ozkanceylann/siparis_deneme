@@ -418,14 +418,23 @@ $("form").onsubmit = async (e)=>{
     });
   });
 
-  digerSecimler.forEach(x=>{
-    secilen.push({
-      id:x.id, ad:x.ad, kg:x.kg,
-      fiyat: manualFreeMode?0:x.fiyat,
-      adet:x.adet, toplam: manualFreeMode?0:x.toplam
-    });
-  });
+digerSecimler.forEach(x=>{
+  const u = digerUrunler.find(item => item.id === x.id);
 
+  secilen.push({
+    id: x.id,
+    ad: x.ad,
+    kg: x.kg,
+
+    // BURAYA EKLENEN KRİTİK SATIR:
+    kargo_kg: x.kg === 10 ? u.kargo_kg_10 : u.kargo_kg_5,
+
+    fiyat: manualFreeMode ? 0 : x.fiyat,
+    adet: x.adet,
+    toplam: manualFreeMode ? 0 : x.toplam
+  });
+});
+  
   const kayit={
     siparis_no:siparisNo,
     musteri_tel:telEl.value,
