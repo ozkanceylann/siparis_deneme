@@ -4,10 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Sipariş Formu</title>
-    <div class="flex gap-4 mt-2 border-b border-slate-700 pb-2">
-  <button id="tabForm" class="tab-btn font-semibold text-blue-300">Form</button>
-  <button id="tabGecmis" class="tab-btn text-slate-300">Sipariş Geçmişi</button>
-</div>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="manifest" href="./manifest.json" />
   <link rel="stylesheet" href="./style.css" />
@@ -54,6 +50,11 @@
       <!-- HEADER -->
       <div class="flex items-start md:items-center justify-between gap-4 mb-6 flex-wrap">
         <h1 class="text-3xl font-extrabold">SİPARİŞ FORMU</h1>
+          <div class="flex items-center gap-3">
+    <div class="w-40">
+      <label class="block text-xs mb-1">Sipariş No</label>
+      <input id="siparis_no" class="inpt w-full text-sm py-2" type="number" placeholder="No → Enter" />
+    </div>
 
         <div class="flex items-center gap-3">
           <div class="w-40">
