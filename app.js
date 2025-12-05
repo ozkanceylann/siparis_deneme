@@ -218,13 +218,20 @@ function renderKgRow(u,kg,fiyat){
 
 function renderDigerDropdown(){
   digerSelect.innerHTML="";
+  
   digerUrunler.forEach(u=>{
-    const opt=document.createElement("option");
-    opt.value=u.id; opt.textContent=u.ad;
+    const opt = document.createElement("option");
+
+    // ÜRÜN ADI + 10 KG FİYATI GÖRÜNÜR
+    opt.value = u.id;
+    opt.textContent = `${u.ad}  —  ${u.fiyat_10} TL (10 kg)`;
+
     digerSelect.appendChild(opt);
   });
+
   updateDigerKgOptions();
 }
+
 function updateDigerKgOptions(){
   const id=Number(digerSelect.value);
   const u=digerUrunler.find(x=>x.id===id);
