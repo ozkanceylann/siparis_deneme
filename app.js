@@ -414,6 +414,7 @@ $("form").onsubmit = async (e)=>{
     const u=cokSatanUrunler.find(x=>x.id==id);
     const fiyat = kg===10 ? u.fiyat_10 : u.fiyat_5;
 
+
     secilen.push({
       id:u.id, ad:u.ad, kg,
   // KG’ye göre doğru kargo_kg değerini ekliyoruz
@@ -441,6 +442,11 @@ digerSecimler.forEach(x=>{
     toplam: manualFreeMode ? 0 : x.toplam
   });
 });
+      // ÜRÜN BİLGİSİ DÜZ YAZI OLUŞTUR
+const urunBilgisiMetni = secilen
+  .map(u => `${u.ad} ${u.kg} kg ${u.adet} adet`)
+  .join("\n");
+
   
   const kayit={
     siparis_no:siparisNo,
@@ -453,6 +459,7 @@ digerSecimler.forEach(x=>{
     ilce_kodu: ilceKodu,
     firma:firmaEl.value,
     siparis_alan:alanEl.value,
+    urun_bilgisi: urunBilgisiMetni,
     secilen_urunler:JSON.stringify(secilen),
     toplam_tutar:manualFreeMode?0:Number(toplamEl.value),
     odeme_turu:manualFreeMode?null:odemeEl.value,
