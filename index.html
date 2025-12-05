@@ -131,6 +131,48 @@
 </div>
 
 
+        <!-- ======================= -->
+<!-- SİPARİŞ GEÇMİŞİ EKRANI -->
+<!-- ======================= -->
+<div id="gecmisContainer" class="hidden mt-6">
+
+  <h2 class="text-2xl font-bold mb-4">Sipariş Geçmişi</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    
+    <div>
+      <label class="text-sm mb-1 block">Başlangıç Tarihi</label>
+      <input id="gecmisBaslangic" type="date" class="inpt w-full">
+    </div>
+
+    <div>
+      <label class="text-sm mb-1 block">Bitiş Tarihi</label>
+      <input id="gecmisBitis" type="date" class="inpt w-full">
+    </div>
+
+    <div>
+      <label class="text-sm mb-1 block">Firma</label>
+      <select id="gecmisFirma" class="inpt w-full">
+        <option value="">Tümü</option>
+        <option value="Tasdipli">Tasdipli</option>
+        <option value="Esin">Esin</option>
+        <option value="Queen">Queen</option>
+      </select>
+    </div>
+
+  </div>
+
+  <button id="gecmisAraBtn"
+    class="inpt bg-emerald-700 hover:bg-emerald-800 text-white w-full mb-4">
+    Ara
+  </button>
+
+  <div id="gecmisListe" class="space-y-3"></div>
+
+</div>
+
+
+
         <!-- =========================== -->
         <!-- ÇOK SATAN ÜRÜNLER -->
         <!-- =========================== -->
