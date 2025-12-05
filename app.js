@@ -409,8 +409,12 @@ $("form").onsubmit = async (e)=>{
 
     secilen.push({
       id:u.id, ad:u.ad, kg,
-      fiyat: manualFreeMode?0:fiyat,
-      adet, toplam: manualFreeMode?0:fiyat*adet
+  // KG’ye göre doğru kargo_kg değerini ekliyoruz
+  kargo_kg: kg === 10 ? u.kargo_kg_10 : u.kargo_kg_5,
+
+  fiyat: manualFreeMode ? 0 : fiyat,
+  adet,
+  toplam: manualFreeMode ? 0 : fiyat * adet
     });
   });
 
