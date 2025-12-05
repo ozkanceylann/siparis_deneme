@@ -688,6 +688,33 @@ tabGecmis.onclick = () => {
 };
 
 // =======================================================
+// ARAMA FONSYONU
+// =======================================================
+
+$("gecmisAraBtn").onclick = async () => {
+  const bas = $("gecmisBaslangic").value;
+  const bit = $("gecmisBitis").value;
+  const firma = $("gecmisFirma").value;
+
+  const alan = currentUser.admin ? null : currentUser.username;
+
+  const liste = await getSiparisGecmisi({ bas, bit, firma, alan });
+
+  const html = liste.map(s => `
+    <div class="p-3 bg-slate-800 rounded-lg border border-slate-700">
+      <div><b>No:</b> ${s.siparis_no}</div>
+      <div><b>Tarih:</b> ${s.tarih}</div>
+      <div><b>Müşteri:</b> ${s.musteri_ad_soyad}</div>
+      <div><b>Firma:</b> ${s.firma}</div>
+    </div>
+  `).join("");
+
+  $("gecmisListe").innerHTML = html || 
+    `<div class="text-slate-400">Kayıt bulunamadı.</div>`;
+};
+
+
+// =======================================================
 // EVENTLER
 // =======================================================
 loginForm.onsubmit = handleLogin;
