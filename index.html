@@ -50,11 +50,6 @@
       <!-- HEADER -->
       <div class="flex items-start md:items-center justify-between gap-4 mb-6 flex-wrap">
         <h1 class="text-3xl font-extrabold">SİPARİŞ FORMU</h1>
-          <div class="flex items-center gap-3">
-    <div class="w-40">
-      <label class="block text-xs mb-1">Sipariş No</label>
-      <input id="siparis_no" class="inpt w-full text-sm py-2" type="number" placeholder="No → Enter" />
-    </div>
 
         <div class="flex items-center gap-3">
           <div class="w-40">
@@ -129,48 +124,6 @@
             rows="2"
             placeholder="Müşteriyle ilgili hatırlatma notu yazınız."></textarea>
 </div>
-
-
-        <!-- ======================= -->
-<!-- SİPARİŞ GEÇMİŞİ EKRANI -->
-<!-- ======================= -->
-<div id="gecmisContainer" class="hidden mt-6">
-
-  <h2 class="text-2xl font-bold mb-4">Sipariş Geçmişi</h2>
-
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-    
-    <div>
-      <label class="text-sm mb-1 block">Başlangıç Tarihi</label>
-      <input id="gecmisBaslangic" type="date" class="inpt w-full">
-    </div>
-
-    <div>
-      <label class="text-sm mb-1 block">Bitiş Tarihi</label>
-      <input id="gecmisBitis" type="date" class="inpt w-full">
-    </div>
-
-    <div>
-      <label class="text-sm mb-1 block">Firma</label>
-      <select id="gecmisFirma" class="inpt w-full">
-        <option value="">Tümü</option>
-        <option value="Tasdipli">Tasdipli</option>
-        <option value="Esin">Esin</option>
-        <option value="Queen">Queen</option>
-      </select>
-    </div>
-
-  </div>
-
-  <button id="gecmisAraBtn"
-    class="inpt bg-emerald-700 hover:bg-emerald-800 text-white w-full mb-4">
-    Ara
-  </button>
-
-  <div id="gecmisListe" class="space-y-3"></div>
-
-</div>
-
 
 
         <!-- =========================== -->
