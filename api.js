@@ -51,12 +51,12 @@ async function loginUser(username, password) {
     admin: !!rows[0].admin,
   };
 }
+
 async function getAllUsers() {
   return sbFetch("users", {
     query: "select=username,admin"
   });
 }
-
 
 // =======================================================
 // ŞEHİR – İLÇE
@@ -81,7 +81,6 @@ async function getUrunler(firma) {
     query: `firma=eq.${encodeURIComponent(firma)}&aktif=is.true&select=id,ad,fiyat_10,fiyat_5,kargo_kg_10,kargo_kg_5,cok_satan&order=ad.asc`,
   });
 }
-
 
 // =======================================================
 // TELEFON → MÜŞTERİ lookup
@@ -121,5 +120,28 @@ async function sendCancelToN8N(siparis_no, neden, iptal_eden) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ siparis_no, neden, iptal_eden }),
+  });
+}
+
+// =======================================================
+// 🆕 SİPARİŞLERİ ÇEK (Siparişlerim Sekmesi İçin)
+// =======================================================
+async function getUserOrders(username, startDate = null, endDate = null, firma = null) {
+  let query = `siparis_alan=eq.${encodeURIComponent(username)}`;
+
+  // Tarih filtreleri
+  if (startDate)
+    query += `&created_at=gte.${startDate}T00:00:00`;
+
+  if (endDate)
+    query += `&created_at=lte.${endDate}T23:59:59`;
+
+  // Firma filtresi
+  if (firma)
+    query += `&firma=eq.${encodeURIComponent(firma)}`;
+
+  return sbFetch("tum_siparisler", {
+    query,
+    select: "*"
   });
 }
