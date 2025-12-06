@@ -52,13 +52,6 @@
         <h1 class="text-3xl font-extrabold">SİPARİŞ FORMU</h1>
 
         <div class="flex items-center gap-3">
-
-          <!-- YENİ BUTON -->
-          <button id="siparislerimBtn"
-            class="chip hover:bg-blue-700 hover:text-white">
-            Siparişlerim
-          </button>
-
           <div class="w-40">
             <label class="block text-xs mb-1">Sipariş No</label>
             <input id="siparis_no" class="inpt w-full text-sm py-2" type="number" placeholder="No → Enter" />
@@ -68,6 +61,7 @@
             <span id="currentUser" class="chip font-semibold"></span>
             <span id="adminBadge" class="chip hidden bg-blue-800 text-blue-50 border-blue-500">Admin</span>
             <button id="logoutBtn" class="chip hover:bg-red-700 hover:text-white">Çıkış</button>
+            
           </div>
         </div>
       </div>
@@ -77,7 +71,7 @@
       <!-- =========================== -->
       <form id="form" class="grid grid-cols-1 gap-6">
 
-        <!-- Firma + Siparişi Alan -->
+        <!-- Firma + Siparişi Alan YAN YANA -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm mb-2">Firma <span class="text-red-400">*</span></label>
@@ -123,27 +117,38 @@
         </div>
 
         <!-- Müşteri Notu -->
-        <div>
-          <label class="block text-sm mb-2">Müşteri Notu</label>
-          <textarea id="musteri_notu" class="inpt w-full" rows="2"></textarea>
-        </div>
+<div class="mb-4">
+  <label class="block text-sm mb-2">Müşteri Notu</label>
+  <textarea id="musteri_notu" 
+            class="inpt w-full" 
+            rows="2"
+            placeholder="Müşteriyle ilgili hatırlatma notu yazınız."></textarea>
+</div>
 
-        <!-- Çok Satan Ürünler -->
+
+        <!-- =========================== -->
+        <!-- ÇOK SATAN ÜRÜNLER -->
+        <!-- =========================== -->
         <div>
           <h2 class="text-xl font-semibold mb-3">Çok Satan Ürünler</h2>
           <div id="cokSatanContainer" class="space-y-4"></div>
         </div>
 
-        <!-- Diğer Ürünler -->
+        <!-- =========================== -->
+        <!-- DİĞER ÜRÜNLER -->
+        <!-- =========================== -->
         <div>
           <h2 class="text-xl font-semibold mb-3">Diğer Ürünler</h2>
 
+          <!-- ÜRÜN SEÇİMİ -->
           <div class="product-box mb-4">
             <label class="block text-sm mb-2">Ürün Seç</label>
             <select id="digerSelect" class="inpt w-full"></select>
 
+            <!-- KG seçenekleri (radio) -->
             <div id="digerKgOptions" class="mt-4 space-y-3"></div>
 
+            <!-- Adet -->
             <div class="mt-3">
               <label class="block text-sm mb-1">Adet</label>
               <input id="digerAdet" type="number" class="inpt" value="1" min="1" />
@@ -156,10 +161,13 @@
             </button>
           </div>
 
+          <!-- Eklenen diğer ürünler -->
           <div id="digerListeContainer" class="space-y-2"></div>
         </div>
 
-        <!-- Toplam / Ödeme -->
+        <!-- =========================== -->
+        <!-- ÖDEME / TOPLAM -->
+        <!-- =========================== -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <div>
             <label class="block text-sm mb-2">Toplam (TL)</label>
@@ -169,7 +177,8 @@
 
           <div class="flex flex-col md:flex-row md:items-end md:justify-end gap-3">
             <button id="btnUcretsiz" type="button"
-              class="inpt bg-purple-700 hover:bg-purple-800 text-white">
+              class="inpt bg-purple-700 hover:bg-purple-800 text-white"
+              title="Ücretsiz/Değişim">
               Ücretsiz / Değişim
             </button>
 
@@ -181,7 +190,7 @@
           </div>
         </div>
 
-        <!-- Not -->
+        <!-- NOT -->
         <div>
           <label class="block text-sm mb-2">Not</label>
           <textarea id="notlar" class="inpt w-full" rows="3"></textarea>
@@ -208,50 +217,9 @@
   </div>
 </div>
 
-
 <!-- =========================== -->
-<!-- SİPARİŞLERİM EKRANI (YENİ) -->
+<!-- POPUP (modern uyarı) -->
 <!-- =========================== -->
-<div id="siparislerimScreen" class="hidden max-w-3xl mx-auto p-6">
-
-  <div class="card p-6 md:p-8">
-
-    <h2 class="text-2xl font-bold mb-6">Siparişlerim</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-      <div>
-        <label class="block text-sm mb-1">Tarih (Başlangıç)</label>
-        <input id="filtreTarih1" type="date" class="inpt w-full">
-      </div>
-
-      <div>
-        <label class="block text-sm mb-1">Tarih (Bitiş)</label>
-        <input id="filtreTarih2" type="date" class="inpt w-full">
-      </div>
-
-      <div>
-        <label class="block text-sm mb-1">Firma</label>
-        <select id="filtreFirma" class="inpt w-full"></select>
-      </div>
-    </div>
-
-    <button id="filtreBtn"
-      class="inpt w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 mb-4">
-      Filtrele
-    </button>
-
-    <div id="siparisListe" class="space-y-3"></div>
-
-    <button onclick="siparislerimScreen.classList.add('hidden'); appContainer.classList.remove('hidden');"
-      class="inpt w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mt-6">
-      ← Sipariş Formuna Dön
-    </button>
-
-  </div>
-</div>
-
-
-<!-- POPUP -->
 <div id="popup" class="popup hidden">
   <div id="popupBox" class="popup-box">
     <div id="popupMsg"></div>
@@ -259,10 +227,11 @@
   </div>
 </div>
 
+<!-- =========================== -->
 <!-- SCRIPTS -->
+<!-- =========================== -->
 <script src="./api.js"></script>
 <script src="./app.js"></script>
-
 <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
@@ -270,6 +239,5 @@
     });
   }
 </script>
-
 </body>
 </html>
