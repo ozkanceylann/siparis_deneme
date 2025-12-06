@@ -41,7 +41,7 @@
 
 
 <!-- =========================== -->
-<!-- APP SCREEN -->
+<!-- APP SCREEN (SİPARİŞ FORMU) -->
 <!-- =========================== -->
 <div id="appContainer" class="hidden">
   <div class="max-w-3xl mx-auto p-6">
@@ -52,6 +52,11 @@
         <h1 class="text-3xl font-extrabold">SİPARİŞ FORMU</h1>
 
         <div class="flex items-center gap-3">
+          <button id="siparislerimBtn"
+            class="chip hover:bg-blue-700 hover:text-white">
+            Siparişlerim
+          </button>
+
           <div class="w-40">
             <label class="block text-xs mb-1">Sipariş No</label>
             <input id="siparis_no" class="inpt w-full text-sm py-2" type="number" placeholder="No → Enter" />
@@ -61,10 +66,16 @@
             <span id="currentUser" class="chip font-semibold"></span>
             <span id="adminBadge" class="chip hidden bg-blue-800 text-blue-50 border-blue-500">Admin</span>
             <button id="logoutBtn" class="chip hover:bg-red-700 hover:text-white">Çıkış</button>
-            
           </div>
         </div>
       </div>
+
+      <!-- =========================== -->
+      <!-- FORM -->
+      <!-- =========================== -->
+      <!-- (BURASI SENİN MEVCUT FORMUN – AYNEN BIRAKILDI) -->
+      <!-- Hiçbir değişiklik yapmadım, formun devamı aşağıda -->
+
 
       <!-- =========================== -->
       <!-- FORM -->
