@@ -41,15 +41,21 @@ const loginScreen = $("loginScreen"),
   adminBadge = $("adminBadge"),
   logoutBtn = $("logoutBtn");
 
+// SİPARİŞLERİM EKRANI
+const siparislerimBtn = $("siparislerimBtn"),
+  siparislerimScreen = $("siparislerimScreen"),
+  siparisListe = $("siparisListe"),
+  filtreTarih1 = $("filtreTarih1"),
+  filtreTarih2 = $("filtreTarih2"),
+  filtreFirma = $("filtreFirma"),
+  filtreBtn = $("filtreBtn");
+
 // POPUP
 const popup = $("popup"),
   popupBox = $("popupBox"),
   popupMsg = $("popupMsg"),
   popupClose = $("popupClose");
 
-// ===============================
-// POPUP FONKSİYONU EKLENTİSİ
-// ===============================
 function showPopup(msg, type="ok") {
   popupMsg.textContent = msg;
   popup.classList.remove("hidden");
@@ -62,85 +68,100 @@ function showPopup(msg, type="ok") {
     popupBox.style.color = "#e6f1ff";
   }
 }
-// =======================================================
-// MENÜYÜ SIFIRLA 
-// =======================================================
 
+popupClose.onclick = ()=> popup.classList.add("hidden");
 
 // =======================================================
-// GLOBALS
+// GLOBAL
 // =======================================================
 let cokSatanUrunler = [];
 let digerUrunler = [];
 let digerSecimler = [];
-
 let manualFreeMode = false;
 let autoCalcLocked = false;
 let currentUser = null;
 let appInitialized = false;
 let lastQueried = "";
-
 const STORAGE_KEY = "siparisUser";
 
-const SIPARISI_ALAN_LISTESI = ["Seda","Betül","İbrahim","Ceylan","Özkan","Cennet"];
-
 // =======================================================
-// UI & HELPERS
+// UI HELPERS
 // =======================================================
-function showApp(){ loginScreen.classList.add("hidden"); appContainer.classList.remove("hidden"); }
-function showLogin(msg=""){ loginScreen.classList.remove("hidden"); appContainer.classList.add("hidden"); loginMessage.textContent=msg; loginMessage.className="text-sm text-center text-red-400"; }
-function updateUserUI(user){ currentUserEl.textContent=user.username; adminBadge.classList.toggle("hidden", !user.admin); }
+function showApp(){
+  loginScreen.classList.add("hidden");
+  appContainer.classList.remove("hidden");
+}
+function showLogin(msg=""){
+  loginScreen.classList.remove("hidden");
+  appContainer.classList.add("hidden");
+  loginMessage.textContent=msg;
+  loginMessage.className="text-sm text-center text-red-400";
+}
+function updateUserUI(user){
+  currentUserEl.textContent=user.username;
+  adminBadge.classList.toggle("hidden", !user.admin);
+}
 
 function fillSelect(el, arr, placeholder="Seçiniz…"){
   el.innerHTML = `<option value="">${placeholder}</option>`;
   arr.forEach(v=>{
-    const opt = document.createElement("option");
-    opt.value = v;
-    opt.textContent = v;
-    el.appendChild(opt);
+    el.innerHTML += `<option value="${v}">${v}</option>`;
   });
 }
+
 async function setSiparisiAlan(user){
   const users = await getAllUsers();
-  const userList = users.map(u => u.username);
+  const userList = users.map(u=>u.username);
 
   if(!user.admin){
-    // Admin değil → tek seçenek kendisi
     fillSelect(alanEl, [user.username], "");
     alanEl.value = user.username;
     alanEl.disabled = true;
   } else {
-    // Admin → tüm kullanıcılar listede
     fillSelect(alanEl, userList, "Seçiniz…");
     alanEl.disabled = false;
   }
 }
 
-popupClose.onclick = ()=> popup.classList.add("hidden");
-
 // =======================================================
 // LOGIN / STORAGE
 // =======================================================
-function saveUser(user){ const data={...user, exp: Date.now()+8*60*60*1000}; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
-function loadUser(){ try{ const raw=localStorage.getItem(STORAGE_KEY); if(!raw) return null; const u=JSON.parse(raw); if(Date.now()>u.exp){ localStorage.removeItem(STORAGE_KEY); return null;} return u; }catch{return null;} }
+function saveUser(user){
+  const data = {...user, exp: Date.now()+8*60*60*1000};
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+function loadUser(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    const u = JSON.parse(raw);
+    if(Date.now() > u.exp){
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return u;
+  }catch{
+    return null;
+  }
+}
 
 async function handleLogin(e){
   e.preventDefault();
   loginMessage.textContent="Giriş yapılıyor…";
   loginMessage.className="text-center text-blue-300 text-sm";
 
-  try{
+  try {
     const user = await loginUser(loginUsername.value.trim(), loginPassword.value);
     if(!user){ showLogin("Kullanıcı adı veya şifre hatalı."); return; }
 
-    currentUser=user;
+    currentUser = user;
     saveUser(user);
     updateUserUI(user);
     showApp();
     setSiparisiAlan(user);
     await initApp();
 
-  }catch{
+  } catch {
     showLogin("Giriş hatası.");
   }
 }
@@ -152,30 +173,31 @@ async function loadCities(){
   const cities = await getCities();
   sehirEl.innerHTML = `<option value="">Şehir seçiniz…</option>`;
   cities.forEach(c=>{
-    const opt=document.createElement("option");
-    opt.value=c.id; opt.textContent=c.name;
-    sehirEl.appendChild(opt);
+    sehirEl.innerHTML += `<option value="${c.id}">${c.name}</option>`;
   });
 }
+
 async function loadDistrictsUI(cityId){
   ilceEl.disabled = true;
   ilceEl.innerHTML = `<option value="">Yükleniyor…</option>`;
+
   const d = await getDistricts(cityId);
   ilceEl.innerHTML = `<option value="">İlçe seçiniz…</option>`;
+
   d.forEach(x=>{
-    const o=document.createElement("option");
-    o.value=`${x.id}|${x.code}|${x.name}`;
-    o.textContent=x.name;
-    ilceEl.appendChild(o);
+    ilceEl.innerHTML += `<option value="${x.id}|${x.code}|${x.name}">${x.name}</option>`;
   });
-  ilceEl.disabled=false;
+
+  ilceEl.disabled = false;
 }
 
 // =======================================================
 // ÜRÜNLER
 // =======================================================
 async function loadUrunlerUI(){
-  const firma = firmaEl.value; if(!firma) return;
+  const firma = firmaEl.value;
+  if(!firma) return;
+
   const items = await getUrunler(firma);
 
   cokSatanUrunler = items.filter(u=>u.cok_satan);
@@ -197,73 +219,82 @@ function renderCokSatan(){
     cokSatanContainer.appendChild(box);
   });
 }
+
 function renderKgRow(u,kg,fiyat){
   const line=document.createElement("div");
   line.className="product-line";
   line.innerHTML=`
     <label class="flex items-center gap-2">
       <input type="checkbox" class="kg-check" data-id="${u.id}" data-kg="${kg}">
-      <span class="text-sm">${kg} kg — <b>${fiyat} TL</b></span>
+      <span>${kg} kg — <b>${fiyat} TL</b></span>
     </label>
+
     <div class="flex items-center gap-2">
       <span class="text-xs">Adet:</span>
       <input type="number" value="1" min="1"
-             class="kg-adet"
-             data-id="${u.id}"
-             data-kg="${kg}">
+        class="kg-adet"
+        data-id="${u.id}"
+        data-kg="${kg}">
     </div>
   `;
   return line;
 }
 
 function renderDigerDropdown(){
-  digerSelect.innerHTML="";
-  
+  digerSelect.innerHTML = "";
+
   digerUrunler.forEach(u=>{
-    const opt = document.createElement("option");
-
-    // ÜRÜN ADI + 10 KG FİYATI GÖRÜNÜR
-    opt.value = u.id;
-    opt.textContent = `${u.ad}  —  ${u.fiyat_10} TL (10 kg)`;
-
-    digerSelect.appendChild(opt);
+    digerSelect.innerHTML += `
+      <option value="${u.id}">
+        ${u.ad} — ${u.fiyat_10} TL (10 kg)
+      </option>
+    `;
   });
 
   updateDigerKgOptions();
 }
 
 function updateDigerKgOptions(){
-  const id=Number(digerSelect.value);
-  const u=digerUrunler.find(x=>x.id===id);
+  const id = Number(digerSelect.value);
+  const u = digerUrunler.find(x=>x.id===id);
   if(!u){ digerKgOptions.innerHTML=""; return; }
-  digerKgOptions.innerHTML=`
+
+  digerKgOptions.innerHTML = `
     <label class="flex items-center gap-2">
       <input type="radio" name="digerKg" value="10|${u.fiyat_10}" checked>
-      <span>10 kg — ${u.fiyat_10} TL</span>
+      10 kg — ${u.fiyat_10} TL
     </label>
     <label class="flex items-center gap-2">
       <input type="radio" name="digerKg" value="5|${u.fiyat_5}">
-      <span>5 kg — ${u.fiyat_5} TL</span>
+      5 kg — ${u.fiyat_5} TL
     </label>
   `;
 }
-digerSelect.onchange=updateDigerKgOptions;
 
+digerSelect.onchange = updateDigerKgOptions;
+
+// =======================================================
+// DİĞER ÜRÜN EKLEME
+// =======================================================
 digerEkleBtn.onclick = (e)=>{
   e.preventDefault();
-  const id=Number(digerSelect.value);
-  const u=digerUrunler.find(x=>x.id===id);
+  const id = Number(digerSelect.value);
+  const u = digerUrunler.find(x=>x.id===id);
   if(!u) return;
 
-  const kgRadio=document.querySelector('input[name="digerKg"]:checked');
+  const kgRadio = document.querySelector('input[name="digerKg"]:checked');
   if(!kgRadio) return;
 
-  const [kg,fiyat]=kgRadio.value.split("|").map(Number);
-  const adet=Number(digerAdet.value||1);
+  const [kg,fiyat] = kgRadio.value.split("|").map(Number);
+  const adet = Number(digerAdet.value || 1);
 
   digerSecimler.push({
-    id:u.id, ad:u.ad, kg, adet,
-    fiyat, toplam:fiyat*adet
+    id: u.id,
+    ad: u.ad,
+    kg,
+    adet,
+    fiyat,
+    toplam: fiyat * adet
   });
 
   renderDigerListe();
@@ -271,23 +302,22 @@ digerEkleBtn.onclick = (e)=>{
 };
 
 function renderDigerListe(){
-  digerListeContainer.innerHTML="";
+  digerListeContainer.innerHTML = "";
   digerSecimler.forEach((x,i)=>{
-    const row=document.createElement("div");
-    row.className="diger-item";
-    row.innerHTML=`
-      <div>${x.ad}</div>
-      <div>${x.kg} kg</div>
-      <div>x${x.adet}</div>
-      <div>${x.toplam} TL</div>
-      <button type="button" class="remove-btn" data-index="${i}">Sil</button>
+    digerListeContainer.innerHTML += `
+      <div class="diger-item">
+        <div>${x.ad}</div>
+        <div>${x.kg} kg</div>
+        <div>x${x.adet}</div>
+        <div>${x.toplam} TL</div>
+        <button class="remove-btn" data-index="${i}">Sil</button>
+      </div>
     `;
-    digerListeContainer.appendChild(row);
   });
 
   document.querySelectorAll(".remove-btn").forEach(b=>{
-    b.onclick=()=>{
-      const i=Number(b.dataset.index);
+    b.onclick = ()=>{
+      const i = Number(b.dataset.index);
       digerSecimler.splice(i,1);
       renderDigerListe();
       autoRecalc();
@@ -305,21 +335,27 @@ function hesaplaToplam(){
   document.querySelectorAll(".kg-check:checked").forEach(chk=>{
     const id=chk.dataset.id;
     const kg=Number(chk.dataset.kg);
-    const adetEl=document.querySelector(`.kg-adet[data-id="${id}"][data-kg="${kg}"]`);
-    const adet=Number(adetEl.value||1);
-    const u=cokSatanUrunler.find(x=>x.id==id);
-    const fiyat = kg===10 ? u.fiyat_10 : u.fiyat_5;
-    total += fiyat*adet;
+
+    const adetEl=document.querySelector(
+      `.kg-adet[data-id="${id}"][data-kg="${kg}"]`
+    );
+    const adet = Number(adetEl.value || 1);
+
+    const u = cokSatanUrunler.find(x=>x.id==id);
+    const fiyat = kg === 10 ? u.fiyat_10 : u.fiyat_5;
+
+    total += fiyat * adet;
   });
 
-  digerSecimler.forEach(x=> total+=x.toplam);
+  digerSecimler.forEach(x=> total += x.toplam);
 
   return total;
 }
+
 function autoRecalc(){
   if(autoCalcLocked) return;
   toplamEl.value = hesaplaToplam();
-  toplamHint.textContent="Otomatik hesaplandı.";
+  toplamHint.textContent = "Otomatik hesaplandı.";
 }
 
 // =======================================================
@@ -329,33 +365,34 @@ btnUcretsiz.onclick = ()=>{
   manualFreeMode = !manualFreeMode;
 
   if(manualFreeMode){
-    toplamEl.value=0;
-    odemeEl.disabled=true;
+    toplamEl.value = 0;
+    odemeEl.disabled = true;
     autoCalcLocked = true;
-    btnUcretsiz.textContent="Ücretli Yap";
-  }else{
-    odemeEl.disabled=false;
-    autoCalcLocked=false;
-    btnUcretsiz.textContent="Ücretsiz / Değişim";
+    btnUcretsiz.textContent = "Ücretli Yap";
+  } else {
+    odemeEl.disabled = false;
+    autoCalcLocked = false;
+    btnUcretsiz.textContent = "Ücretsiz / Değişim";
     autoRecalc();
   }
 };
 
 // =======================================================
-// TELEFON LOOKUP (10 hane)
+// TELEFON LOOKUP
 // =======================================================
 async function handleTelLookup(){
-  let raw=telEl.value.replace(/\D/g,"").slice(0,10);
-  telEl.value=raw;
+  let raw = telEl.value.replace(/\D/g,"").slice(0,10);
+  telEl.value = raw;
 
-  if(raw.length!==10){
-    musteriHint.textContent="";
+  if(raw.length !== 10){
+    musteriHint.textContent = "";
     return;
   }
-  if(raw===lastQueried) return;
-  lastQueried=raw;
 
-  musteriHint.textContent="Müşteri sorgulanıyor…";
+  if(raw === lastQueried) return;
+  lastQueried = raw;
+
+  musteriHint.textContent = "Müşteri sorgulanıyor…";
 
   try{
     const m = await findMusteriByTel(raw);
@@ -368,34 +405,49 @@ async function handleTelLookup(){
     adresEl.value = m.adres || "";
 
     if(m.firma){
-      firmaEl.value=m.firma;
+      firmaEl.value = m.firma;
       await loadUrunlerUI();
     }
 
     if(m.sehir){
-      const cityOpt=[...sehirEl.options].find(o=>o.textContent===m.sehir);
+      const cityOpt = [...sehirEl.options]
+        .find(o=>o.textContent===m.sehir);
       if(cityOpt){
-        sehirEl.value=cityOpt.value;
+        sehirEl.value = cityOpt.value;
         await loadDistrictsUI(cityOpt.value);
 
-        const ilOpt=[...ilceEl.options].find(o=>o.textContent===m.ilce);
-        if(ilOpt) ilceEl.value=ilOpt.value;
+        const ilOpt = [...ilceEl.options]
+          .find(o=>o.textContent===m.ilce);
+        if(ilOpt) ilceEl.value = ilOpt.value;
       }
     }
 
     musteriHint.textContent="Müşteri bilgileri yüklendi.";
 
-  }catch(err){
+  }catch{
     musteriHint.textContent="Sorgu hatası.";
   }
 }
 telEl.addEventListener("input", handleTelLookup);
 
 // =======================================================
-// SUBMIT (N8N’e gider)
+// SİPARİŞ FORMU SUBMIT
 // =======================================================
 $("form").onsubmit = async (e)=>{
   e.preventDefault();
+
+  // **********************
+  // YENİ ÖZELLİK: ÜRÜN ZORUNLU
+  // **********************
+  const seciliUrunSayisi =
+    document.querySelectorAll(".kg-check:checked").length +
+    digerSecimler.length;
+
+  if(seciliUrunSayisi === 0){
+    showPopup("Lütfen en az 1 ürün seçin.", "error");
+    return;
+  }
+
   sonucEl.textContent="Gönderiliyor…";
 
   const siparisNo = siparisNoEl.value.trim() || null;
@@ -406,69 +458,71 @@ $("form").onsubmit = async (e)=>{
 
   const secilen=[];
 
+  // Çok satan ürünler
   document.querySelectorAll(".kg-check:checked").forEach(chk=>{
-    const id=chk.dataset.id;
-    const kg=Number(chk.dataset.kg);
-    const adetEl=document.querySelector(`.kg-adet[data-id="${id}"][data-kg="${kg}"]`);
-    const adet=Number(adetEl.value||1);
-    const u=cokSatanUrunler.find(x=>x.id==id);
+    const id = chk.dataset.id;
+    const kg = Number(chk.dataset.kg);
+
+    const adetEl = document.querySelector(
+      `.kg-adet[data-id="${id}"][data-kg="${kg}"]`
+    );
+    const adet = Number(adetEl.value || 1);
+
+    const u = cokSatanUrunler.find(x=>x.id==id);
     const fiyat = kg===10 ? u.fiyat_10 : u.fiyat_5;
 
-
     secilen.push({
-      id:u.id, ad:u.ad, kg,
-  // KG’ye göre doğru kargo_kg değerini ekliyoruz
-  kargo_kg: kg === 10 ? u.kargo_kg_10 : u.kargo_kg_5,
-
-  fiyat: manualFreeMode ? 0 : fiyat,
-  adet,
-  toplam: manualFreeMode ? 0 : fiyat * adet
+      id: u.id,
+      ad: u.ad,
+      kg,
+      kargo_kg: kg===10 ? u.kargo_kg_10 : u.kargo_kg_5,
+      fiyat: manualFreeMode ? 0 : fiyat,
+      adet,
+      kargo_adet: adet, // ******** YENİ ********
+      toplam: manualFreeMode ? 0 : fiyat * adet
     });
   });
 
-digerSecimler.forEach(x=>{
-  const u = digerUrunler.find(item => item.id === x.id);
+  // Diğer ürünler
+  digerSecimler.forEach(x=>{
+    const u = digerUrunler.find(item=>item.id===x.id);
 
-  secilen.push({
-    id: x.id,
-    ad: x.ad,
-    kg: x.kg,
-
-    // BURAYA EKLENEN KRİTİK SATIR:
-    kargo_kg: x.kg === 10 ? u.kargo_kg_10 : u.kargo_kg_5,
-
-    fiyat: manualFreeMode ? 0 : x.fiyat,
-    adet: x.adet,
-    toplam: manualFreeMode ? 0 : x.toplam
+    secilen.push({
+      id: x.id,
+      ad: x.ad,
+      kg: x.kg,
+      kargo_kg: x.kg===10 ? u.kargo_kg_10 : u.kargo_kg_5,
+      fiyat: manualFreeMode ? 0 : x.fiyat,
+      adet: x.adet,
+      kargo_adet: x.adet, // ******** YENİ ********
+      toplam: manualFreeMode ? 0 : x.toplam
+    });
   });
-});
-      // ÜRÜN BİLGİSİ DÜZ YAZI OLUŞTUR
-const urunBilgisiMetni = secilen
-  .map(u => `${u.ad} ${u.kg} kg ${u.adet} adet`)
-  .join("\n");
 
-  
+  const urunBilgisiMetni = secilen
+    .map(u=>`${u.ad} ${u.kg} kg ${u.adet} adet`)
+    .join("\n");
+
   const kayit={
-    siparis_no:siparisNo,
-    musteri_tel:telEl.value,
-    musteri_ad_soyad:adEl.value,
-    musteri_adres:adresEl.value,
-    sehir:sehirAd,
-    ilce:ilceAd,
+    siparis_no: siparisNo,
+    musteri_tel: telEl.value,
+    musteri_ad_soyad: adEl.value,
+    musteri_adres: adresEl.value,
+    sehir: sehirAd,
+    ilce: ilceAd,
     sehir_kodu: sehirKodu,
     ilce_kodu: ilceKodu,
-    firma:firmaEl.value,
-    siparis_alan:alanEl.value,
+    firma: firmaEl.value,
+    siparis_alan: alanEl.value,
     urun_bilgisi: urunBilgisiMetni,
-    secilen_urunler:JSON.stringify(secilen),
-    toplam_tutar:manualFreeMode?0:Number(toplamEl.value),
-    odeme_turu:manualFreeMode?null:odemeEl.value,
-    notlar:notlarEl.value,
+    secilen_urunler: JSON.stringify(secilen),
+    toplam_tutar: manualFreeMode ? 0 : Number(toplamEl.value),
+    odeme_turu: manualFreeMode ? null : odemeEl.value,
+    notlar: notlarEl.value,
     musteri_notu: musteriNotuEl.value || ""
   };
 
-  try{
-    console.log("GÖNDERİLEN PAYLOAD:", kayit);
+  try {
     await insertFormSiparis(kayit);
     sonucEl.className="text-sm text-emerald-400";
     sonucEl.textContent="Gönderildi.";
@@ -480,152 +534,62 @@ const urunBilgisiMetni = secilen
 };
 
 // =======================================================
-// SİPARİŞ NO
+// SİPARİŞLERİM EKRANI
 // =======================================================
-siparisNoEl.onblur = loadSiparisByNo;
-siparisNoEl.addEventListener("keydown",(e)=>{
-  if(e.key==="Enter"){ e.preventDefault(); loadSiparisByNo(); }
-});
+siparislerimBtn.onclick = async () => {
+  appContainer.classList.add("hidden");
+  siparislerimScreen.classList.remove("hidden");
 
-async function loadSiparisByNo() {
-  const no = siparisNoEl.value.trim();
-  if (!no) return;
+  const rows = await getUserOrders(currentUser.username);
+  renderSiparisList(rows);
+};
 
-  try {
-    // --- 1) Siparişi çek ---
-    const rows = await sbFetch("tum_siparisler", {
-      query: `siparis_no=eq.${no}&select=*`
-    });
+filtreBtn.onclick = async () => {
+  const t1 = filtreTarih1.value || null;
+  const t2 = filtreTarih2.value || null;
+  const firma = filtreFirma.value || null;
 
-    if (!rows.length) {
-      showPopup("Sipariş bulunamadı.", "error");
-      return;
-    }
+  const rows = await getUserOrders(currentUser.username, t1, t2, firma);
+  renderSiparisList(rows);
+};
 
-    const d = rows[0];
+function renderSiparisList(rows){
+  siparisListe.innerHTML = "";
 
-    // --- 2) YETKİ KONTROLÜ (EN BAŞTA) ---
-    // EŞLEŞME: d.siparis_alan === currentUser.username
-    if (!currentUser.admin && d.siparis_alan?.trim() !== currentUser.username?.trim()) {
-      showPopup(`Bu sipariş size ait değildir. (${d.siparis_alan})`, "error");
-      return;
-    }
-
-    // --- 3) Temel müşteri bilgileri ---
-    telEl.value = d.musteri_tel || "";
-    adEl.value = d.ad_soyad || "";
-    adresEl.value = d.adres || "";
-    notlarEl.value = d.notlar || "";
-    if (d.musteri_notu) musteriNotuEl.value = d.musteri_notu;
-
-    // --- 4) Firma yükle ---
-    if (d.firma) {
-      firmaEl.value = d.firma;
-      await loadUrunlerUI();
-    }
-
-    // --- 5) Şehir / İlçe ---
-    if (d.sehir) {
-      const cityOpt = [...sehirEl.options].find(o => o.textContent === d.sehir);
-      if (cityOpt) {
-        sehirEl.value = cityOpt.value;
-        await loadDistrictsUI(cityOpt.value);
-
-        const ilOpt = [...ilceEl.options].find(o => o.textContent === d.ilce);
-        if (ilOpt) ilceEl.value = ilOpt.value;
-      }
-    }
-
-    // --- 6) Siparişi Alan ---
-    if (!currentUser.admin) {
-      // Normal kullanıcı → sadece kendisi görür
-      fillSelect(alanEl, [currentUser.username], "");
-      alanEl.value = currentUser.username;
-      alanEl.disabled = true;
-
-    } else {
-      // Admin → tüm kullanıcı listesi
-      await setSiparisiAlan(currentUser);
-      if (d.siparis_alan) alanEl.value = d.siparis_alan;
-    }
-
-    // --- 7) Ürünleri sıfırla ve yükle ---
-    digerSecimler = [];
-    uncheckAllCokSatan();
-
-    try {
-      const urunler = Array.isArray(d.secilen_urunler)
-        ? d.secilen_urunler
-        : JSON.parse(d.secilen_urunler || "[]");
-
-      urunler.forEach(it => {
-        const cs = cokSatanUrunler.find(x => x.id == it.id);
-
-        if (cs) {
-          const chk = cokSatanContainer.querySelector(
-            `.kg-check[data-id="${it.id}"][data-kg="${it.kg}"]`
-          );
-          const adetInp = cokSatanContainer.querySelector(
-            `.kg-adet[data-id="${it.id}"][data-kg="${it.kg}"]`
-          );
-
-          if (chk) chk.checked = true;
-          if (adetInp) adetInp.value = it.adet || 1;
-
-        } else {
-          digerSecimler.push({
-            id: it.id,
-            ad: it.ad,
-            kg: Number(it.kg),
-            adet: Number(it.adet || 1),
-            fiyat: Number(it.fiyat || 0),
-            toplam: Number(it.toplam || 0)
-          });
-        }
-      });
-
-      renderDigerListe();
-    } catch {
-      renderDigerListe();
-    }
-
-    // --- 8) Ücretsiz / Ücretli ---
-    if (Number(d.toplam_tutar) === 0) {
-      manualFreeMode = true;
-      odemeEl.disabled = true;
-      btnUcretsiz.textContent = "Ücretli Yap";
-      toplamEl.value = 0;
-    } else {
-      manualFreeMode = false;
-      odemeEl.disabled = false;
-      btnUcretsiz.textContent = "Ücretsiz / Değişim";
-      toplamEl.value = d.toplam_tutar || hesaplaToplam();
-    }
-
-    if (d.odeme_turu) odemeEl.value = d.odeme_turu;
-
-    toplamHint.textContent = "Sipariş yüklendi.";
-
-  } catch (err) {
-    showPopup("Sipariş yüklenemedi.", "error");
+  if(!rows.length){
+    siparisListe.innerHTML = "<div class='text-sm'>Kayıt bulunamadı</div>";
+    return;
   }
-}
 
+  rows.forEach(r=>{
+    const box=document.createElement("div");
+    box.className="product-box";
 
+    box.innerHTML = `
+      <div class="text-lg font-bold">#${r.siparis_no}</div>
+      <div>${r.musteri_ad_soyad}</div>
+      <div>${r.firma}</div>
+      <div class="text-sm text-slate-300">${r.created_at}</div>
+      <div class="mt-2"><b>Kargo Kodu:</b> ${r.kargo_kodu || "-"}</div>
+    `;
 
-function uncheckAllCokSatan(){
-  cokSatanContainer.querySelectorAll('.kg-check').forEach(c=>c.checked=false);
-  cokSatanContainer.querySelectorAll('.kg-adet').forEach(i=>i.value=1);
+    siparisListe.appendChild(box);
+  });
 }
 
 // =======================================================
-// SİPARİŞ İPTAL
+// İPTAL
 // =======================================================
 btnIptal.onclick = async ()=>{
-  const no=siparisNoEl.value.trim();
-  if(!no){ showPopup("Önce sipariş no gir.","error"); return; }
+  const no = siparisNoEl.value.trim();
+  if(!no){
+    showPopup("Önce sipariş no gir.","error");
+    return;
+  }
+
   const neden = prompt("İptal nedeni:");
   if(neden===null) return;
+
   await sendCancelToN8N(no, neden, currentUser.username);
   showPopup("İptal bilgisi gönderildi.","ok");
 };
@@ -635,15 +599,16 @@ btnIptal.onclick = async ()=>{
 // =======================================================
 async function initApp(){
   if(appInitialized) return;
-  appInitialized=true;
+  appInitialized = true;
 
   fillSelect(firmaEl, ["Tasdipli","Esin","Queen"], "Firma seçiniz…");
+  fillSelect(filtreFirma, ["Tasdipli","Esin","Queen"], "Firma seçiniz…");
 
-  setSiparisiAlan(currentUser);
   await loadCities();
+  setSiparisiAlan(currentUser);
 
-  ilceEl.disabled=true;
-  ilceEl.innerHTML=`<option value="">Önce şehir seçiniz…</option>`;
+  ilceEl.disabled = true;
+  ilceEl.innerHTML = `<option value="">Önce şehir seçiniz…</option>`;
 }
 
 // =======================================================
@@ -672,16 +637,16 @@ document.addEventListener("input", (e)=>{
 
 toplamEl.oninput = ()=>{ autoCalcLocked=true; };
 
-// Auto login
+// AUTO LOGIN
 (function(){
-  const saved=loadUser();
+  const saved = loadUser();
   if(saved){
     currentUser=saved;
     updateUserUI(saved);
     showApp();
     setSiparisiAlan(saved);
     initApp();
-  }else{
+  } else {
     showLogin();
   }
 })();
