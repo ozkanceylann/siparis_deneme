@@ -285,19 +285,6 @@ function renderDigerListe(){
     digerListeContainer.appendChild(row);
   });
 
-  // =======================================================
-// ÜRÜN SİLME - DELEGASYON (Tek seferde çalışır, sorun çıkarmaz)
-// =======================================================
-digerListeContainer.addEventListener("click", function(e){
-  if (e.target.classList.contains("remove-btn")) {
-    const index = Number(e.target.dataset.index);
-    digerSecimler.splice(index, 1);
-    renderDigerListe();
-    autoRecalc();
-  }
-});
-
-
 // =======================================================
 // TOPLAM
 // =======================================================
@@ -660,6 +647,19 @@ btnIptal.onclick = async ()=>{
   await sendCancelToN8N(no, neden, currentUser.username);
   showPopup("İptal bilgisi gönderildi.","ok");
 };
+
+    // =======================================================
+// ÜRÜN SİLME - DELEGASYON (Tek seferde çalışır, sorun çıkarmaz)
+// =======================================================
+digerListeContainer.addEventListener("click", function(e){
+  if (e.target.classList.contains("remove-btn")) {
+    const index = Number(e.target.dataset.index);
+    digerSecimler.splice(index, 1);
+    renderDigerListe();
+    autoRecalc();
+  }
+});
+
 
 // =======================================================
 // INIT
