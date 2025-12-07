@@ -404,80 +404,101 @@ $("form").onsubmit = async (e)=>{
   const ilceAd = ilceEl.value ? ilceEl.value.split("|")[2] : "";
   const ilceKodu = ilceEl.value ? ilceEl.value.split("|")[1] : null;
 
-  const secilen=[];
+// =======================================================
+// SEÇİLEN ÜRÜNLERİ TOPLA
+// =======================================================
+const secilen = [];
 
-  document.querySelectorAll(".kg-check:checked").forEach(chk=>{
-    const id=chk.dataset.id;
-    const kg=Number(chk.dataset.kg);
-    const adetEl=document.querySelector(`.kg-adet[data-id="${id}"][data-kg="${kg}"]`);
-    const adet=Number(adetEl.value||1);
-    const u=cokSatanUrunler.find(x=>x.id==id);
-    const fiyat = kg===10 ? u.fiyat_10 : u.fiyat_5;
+// --- ÇOK SATAN ÜRÜNLER ---
+document.querySelectorAll(".kg-check:checked").forEach(chk => {
+  const id = chk.dataset.id;
+  const kg = Number(chk.dataset.kg);
+  const adetEl = document.querySelector(`.kg-adet[data-id="${id}"][data-kg="${kg}"]`);
+  const adet = Number(adetEl.value || 1);
+  const u = cokSatanUrunler.find(x => x.id == id);
+  const fiyat = kg === 10 ? u.fiyat_10 : u.fiyat_5;
 
-
-    secilen.push({
-      id:u.id, ad:u.ad, kg,
-  // KG’ye göre doğru kargo_kg değerini ekliyoruz
-  kargo_kg: kg === 10 ? u.kargo_kg_10 : u.kargo_kg_5,
-
-  fiyat: manualFreeMode ? 0 : fiyat,
-  adet,
-  toplam: manualFreeMode ? 0 : fiyat * adet
-    });
+  secilen.push({
+    id: u.id,
+    ad: u.ad,
+    kg,
+    kargo_kg: kg === 10 ? u.kargo_kg_10 : u.kargo_kg_5,
+    fiyat: manualFreeMode ? 0 : fiyat,
+    adet,
+    toplam: manualFreeMode ? 0 : fiyat * adet
   });
+});
 
-digerSecimler.forEach(x=>{
+// --- DİĞER ÜRÜNLER ---
+digerSecimler.forEach(x => {
   const u = digerUrunler.find(item => item.id === x.id);
 
   secilen.push({
     id: x.id,
     ad: x.ad,
     kg: x.kg,
-
-    // BURAYA EKLENEN KRİTİK SATIR:
     kargo_kg: x.kg === 10 ? u.kargo_kg_10 : u.kargo_kg_5,
-
     fiyat: manualFreeMode ? 0 : x.fiyat,
     adet: x.adet,
     toplam: manualFreeMode ? 0 : x.toplam
   });
 });
-      // ÜRÜN BİLGİSİ DÜZ YAZI OLUŞTUR
+
+
+// =======================================================
+// KARGO_KG ve KARGO_ADET oluştur
+// =======================================================
+let kargoKgListesi = [];
+let toplamKargoAdet = 0;
+
+secilen.forEach(u => {
+  for (let i = 0; i < u.adet; i++) {
+    kargoKgListesi.push(u.kargo_kg);
+  }
+  toplamKargoAdet += u.adet;
+});
+
+// "5,5,10" gibi string
+const kargoKgMetni = kargoKgListesi.join(",");
+
+
+// =======================================================
+// ÜRÜN BİLGİSİ METNİ
+// =======================================================
 const urunBilgisiMetni = secilen
   .map(u => `${u.ad} ${u.kg} kg ${u.adet} adet`)
   .join("\n");
 
-  
-  const kayit={
-    siparis_no:siparisNo,
-    musteri_tel:telEl.value,
-    musteri_ad_soyad:adEl.value,
-    musteri_adres:adresEl.value,
-    sehir:sehirAd,
-    ilce:ilceAd,
-    sehir_kodu: sehirKodu,
-    ilce_kodu: ilceKodu,
-    firma:firmaEl.value,
-    siparis_alan:alanEl.value,
-    urun_bilgisi: urunBilgisiMetni,
-    secilen_urunler:JSON.stringify(secilen),
-    toplam_tutar:manualFreeMode?0:Number(toplamEl.value),
-    odeme_turu:manualFreeMode?null:odemeEl.value,
-    notlar:notlarEl.value,
-    musteri_notu: musteriNotuEl.value || ""
-  };
 
-  try{
-    console.log("GÖNDERİLEN PAYLOAD:", kayit);
-    await insertFormSiparis(kayit);
-    sonucEl.className="text-sm text-emerald-400";
-    sonucEl.textContent="Gönderildi.";
-    autoCalcLocked=false;
-  }catch{
-    sonucEl.className="text-sm text-red-400";
-    sonucEl.textContent="Gönderim hatası.";
-  }
+// =======================================================
+// KAYIT OBJESİ
+// =======================================================
+const kayit = {
+  siparis_no: siparisNo,
+  musteri_tel: telEl.value,
+  musteri_ad_soyad: adEl.value,
+  musteri_adres: adresEl.value,
+  sehir: sehirAd,
+  ilce: ilceAd,
+  sehir_kodu: sehirKodu,
+  ilce_kodu: ilceKodu,
+  firma: firmaEl.value,
+  siparis_alan: alanEl.value,
+
+  // 🔥 SENİN İSTEDİĞİN YENİ ALANLAR
+  kargo_kg: kargoKgMetni,
+  kargo_adet: toplamKargoAdet,
+
+  // DEVAM
+  urun_bilgisi: urunBilgisiMetni,
+  secilen_urunler: JSON.stringify(secilen),
+  toplam_tutar: manualFreeMode ? 0 : Number(toplamEl.value),
+  odeme_turu: manualFreeMode ? null : odemeEl.value,
+  notlar: notlarEl.value,
+  musteri_notu: musteriNotuEl.value || ""
 };
+
+console.log("GÖNDERİLEN PAYLOAD:", kayit);
 
 // =======================================================
 // SİPARİŞ NO
