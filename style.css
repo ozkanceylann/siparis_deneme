@@ -239,16 +239,3 @@ select:focus {
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-thumb { background: #1F2D40; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #293954; }
-
-
-/* ==== DİGER ÜRÜN SİLME TIKLAMASINI KESİNLEŞTİR ==== */
-.diger-item {
-  position: relative;
-  pointer-events: none; /* satır tıklama almaz */
-}
-
-.diger-item .remove-btn {
-  pointer-events: auto; /* sadece buton tıklama alır */
-  z-index: 10;
-}
-

@@ -284,7 +284,17 @@ function renderDigerListe(){
     `;
     digerListeContainer.appendChild(row);
   });
+
+  document.querySelectorAll(".remove-btn").forEach(b=>{
+    b.onclick=()=>{
+      const i=Number(b.dataset.index);
+      digerSecimler.splice(i,1);
+      renderDigerListe();
+      autoRecalc();
+    };
+  });
 }
+
 // =======================================================
 // TOPLAM
 // =======================================================
@@ -648,7 +658,6 @@ btnIptal.onclick = async ()=>{
   showPopup("İptal bilgisi gönderildi.","ok");
 };
 
-
 // =======================================================
 // INIT
 // =======================================================
@@ -704,16 +713,3 @@ toplamEl.oninput = ()=>{ autoCalcLocked=true; };
     showLogin();
   }
 })();
-
-document.addEventListener("click", function(e){
-  if (e.target.classList.contains("remove-btn")) {
-
-    const index = Number(e.target.dataset.index);
-
-    digerSecimler.splice(index, 1);
-
-    renderDigerListe();
-    autoRecalc();
-  }
-});
-
