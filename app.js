@@ -82,7 +82,7 @@ let lastQueried = "";
 
 const STORAGE_KEY = "siparisUser";
 
-const SIPARISI_ALAN_LISTESI = ["Seda","Betül","İbrahim","Ceylan","Özkan","Cennet"];
+const SIPARISI_ALAN_LISTESI = ["Seda","Betül","İbrahim","Ceylan","Özkan","Cennet","Ahmet"];
 
 // =======================================================
 // UI & HELPERS
