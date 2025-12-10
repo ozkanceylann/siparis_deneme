@@ -51,17 +51,24 @@ const popup = $("popup"),
 // POPUP FONKSİYONU EKLENTİSİ
 // ===============================
 function showPopup(msg, type="ok") {
-  popupMsg.textContent = msg;
-  popup.classList.remove("hidden");
 
-  if(type === "error") {
-    popupBox.style.borderColor = "#7b0e0e";
-    popupBox.style.color = "#ffb4b4";
+  // ikonlar
+  let icon = "";
+  if (type === "ok") {
+    icon = "✔️"; // yeşil tik
+    popupBox.style.borderColor = "#2ecc71"; 
+    popupBox.style.color = "#d4ffd4";
   } else {
-    popupBox.style.borderColor = "#1e2e45";
-    popupBox.style.color = "#e6f1ff";
+    icon = "❌"; // kırmızı çarpı
+    popupBox.style.borderColor = "#e74c3c";
+    popupBox.style.color = "#ffd4d4";
   }
+
+  popupMsg.innerHTML = `<div style="font-size:40px; margin-bottom:10px;">${icon}</div>${msg}`;
+
+  popup.classList.remove("hidden");
 }
+
 // =======================================================
 // MENÜYÜ SIFIRLA 
 // =======================================================
@@ -394,9 +401,59 @@ telEl.addEventListener("input", handleTelLookup);
 // =======================================================
 // SUBMIT (N8N’e gider)
 // =======================================================
+function temizleForm() {
+  // Tüm inputları temizle
+  adEl.value = "";
+  telEl.value = "";
+  adresEl.value = "";
+  sehirEl.value = "";
+  ilceEl.innerHTML = `<option value="">Önce şehir seçiniz…</option>`;
+  firmaEl.value = "";
+  alanEl.value = "";
+  musteriNotuEl.value = "";
+  notlarEl.value = "";
+  siparisNoEl.value = "";
+
+  // Çok satan ürünleri sıfırla
+  cokSatanContainer.querySelectorAll('.kg-check').forEach(c=> c.checked = false);
+  cokSatanContainer.querySelectorAll('.kg-adet').forEach(i=> i.value = 1);
+
+  // Diğer ürünleri sıfırla
+  digerSecimler = [];
+  renderDigerListe();
+
+  // Toplam sıfırla
+  toplamEl.value = 0;
+  toplamHint.textContent = "";
+
+  // Ücretsiz mod kapat
+  manualFreeMode = false;
+  odemeEl.disabled = false;
+  btnUcretsiz.textContent = "Ücretsiz / Değişim";
+}
+
+
+
+
 $("form").onsubmit = async (e)=>{
   e.preventDefault();
+
+  // ===========================================
+  // ZORUNLU: En az 1 ürün seçilmeli
+  // ===========================================
+  const seciliCokSatan = document.querySelectorAll(".kg-check:checked").length;
+  const seciliDiger = digerSecimler.length;
+
+  console.log("Kontrol:", seciliCokSatan, seciliDiger); // debug
+
+  if (seciliCokSatan === 0 && seciliDiger === 0) {
+    showPopup("Lütfen en az 1 ürün ekleyin.", "error");
+    sonucEl.textContent = "";
+    return;
+  }
+
   sonucEl.textContent="Gönderiliyor…";
+
 
   const siparisNo = siparisNoEl.value.trim() || null;
   const sehirAd = sehirEl.options[sehirEl.selectedIndex]?.textContent || "";
@@ -496,15 +553,18 @@ $("form").onsubmit = async (e)=>{
   // =======================================================
   // GÖNDERİM
   // =======================================================
-  try{
-    await insertFormSiparis(kayit);
-    sonucEl.className="text-sm text-emerald-400";
-    sonucEl.textContent="Gönderildi.";
-    autoCalcLocked=false;
-  }catch{
-    sonucEl.className="text-sm text-red-400";
-    sonucEl.textContent="Gönderim hatası.";
-  }
+try {
+    const res = await insertFormSiparis(kayit);
+
+    showPopup("Sipariş başarıyla gönderildi.", "ok");  // POPUP ✔
+
+    temizleForm(); // form temizle
+
+} catch {
+    showPopup("Gönderim başarısız oldu.", "error");   // POPUP ❌
+}
+
+
 };
 
 // =======================================================
