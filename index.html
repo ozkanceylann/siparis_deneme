@@ -48,6 +48,15 @@
     <div class="card p-6 md:p-8">
 
       <!-- HEADER -->
+<!-- 📦 SİPARİŞLERİM (full genişlik üst bar) -->
+<button id="openOrders"
+        type="button"
+        class="block w-full text-center inpt bg-slate-700 hover:bg-slate-600 
+               text-white font-semibold py-2 rounded-lg mb-4">
+  📦 Siparişlerim
+</button>
+
+
       <div class="flex items-start md:items-center justify-between gap-4 mb-6 flex-wrap">
         <h1 class="text-3xl font-extrabold">SİPARİŞ FORMU</h1>
 
@@ -226,6 +235,51 @@
     <button id="popupClose" class="popup-close">Kapat</button>
   </div>
 </div>
+<!-- =========================== -->
+<!-- 📦 SİPARİŞLER POPUP (FULL EKRAN) -->
+<!-- =========================== -->
+<div id="ordersModal" class="fixed inset-0 bg-black/70 hidden z-50">
+  <div class="max-w-5xl mx-auto bg-slate-900 text-slate-200 rounded-xl shadow-xl 
+              border border-slate-700 mt-6 mb-8 h-[calc(100vh-3rem)] flex flex-col">
+    
+    <!-- Header / Kontroller -->
+    <div class="p-4 border-b border-slate-700 flex flex-wrap gap-3 items-center">
+      <div class="text-xl font-bold mr-auto">📦 Siparişlerim</div>
+
+      <input id="ordersSearch" placeholder="Ara: ad, telefon, sipariş no"
+             class="inpt bg-slate-800 border border-slate-700 px-3 py-2 rounded w-64">
+
+      <select id="ordersFilter" class="inpt bg-slate-800 border border-slate-700 px-3 py-2 rounded">
+        <option value="hepsi">Hepsi</option>
+        <option value="edilmedi">Teslim Edilmedi</option>
+        <option value="edildi">Teslim Edildi</option>
+      </select>
+
+      <select id="ordersSort" class="inpt bg-slate-800 border border-slate-700 px-3 py-2 rounded">
+        <option value="yeni">Yeni → Eski</option>
+        <option value="eski">Eski → Yeni</option>
+      </select>
+
+      <button id="closeOrders" class="chip hover:bg-red-700 hover:text-white">Kapat</button>
+    </div>
+
+    <!-- Tablo başlık -->
+    <div class="px-4 pt-3 pb-2 text-slate-300 grid grid-cols-7 gap-3 
+                border-b border-slate-800 text-xs font-semibold">
+      <div>Sipariş No</div>
+      <div>Müşteri</div>
+      <div>Telefon</div>
+      <div>Durum</div>
+      <div>Teslim?</div>
+      <div>Kargo Kod</div>
+      <div>Takip</div>
+    </div>
+
+    <!-- Liste -->
+    <div id="ordersList" class="p-4 overflow-y-auto grow space-y-2"></div>
+  </div>
+</div>
+
 
 <!-- =========================== -->
 <!-- SCRIPTS -->

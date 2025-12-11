@@ -70,8 +70,29 @@ function showPopup(msg, type="ok") {
 }
 
 // =======================================================
-// MENÜYÜ SIFIRLA 
+// SİPARİŞLERİM
 // =======================================================
+async function getUserOrdersByAssignee(username){
+  const tables = ["queen_siparisler","esin_siparisler","tasdipli_siparisler"];
+  const all = [];
+  for(const t of tables){
+    const rows = await sbFetch(t, {
+      query: `siparis_alan=eq.${encodeURIComponent(username)}&select=*`
+    });
+    rows.forEach(r => r._tbl = t);
+    all.push(...rows);
+  }
+
+  // Teslim edilmeyenler → en üst
+  // Teslim edilenler → en alt
+  // Aynı grupta → siparis_no yeni → eski
+  return all.sort((a,b)=>{
+    const da = isDeliveredComputed(a), db = isDeliveredComputed(b);
+    if(da !== db) return da ? 1 : -1;
+    return (Number(b.siparis_no)||0) - (Number(a.siparis_no)||0);
+  });
+}
+
 
 
 // =======================================================
@@ -151,6 +172,7 @@ async function handleLogin(e){
     showLogin("Giriş hatası.");
   }
 }
+
 
 // =======================================================
 // ŞEHİR / İLÇE
@@ -734,6 +756,172 @@ async function initApp(){
   ilceEl.innerHTML=`<option value="">Önce şehir seçiniz…</option>`;
 }
 
+// ===========================
+// 📦 SİPARİŞLER POPUP - STATE
+// ===========================
+const ordersModal  = document.getElementById("ordersModal");
+const openOrders   = document.getElementById("openOrders");
+const closeOrders  = document.getElementById("closeOrders");
+const ordersList   = document.getElementById("ordersList");
+const ordersSearch = document.getElementById("ordersSearch");
+const ordersFilter = document.getElementById("ordersFilter");
+const ordersSort   = document.getElementById("ordersSort");
+
+let _ordersFull = [];
+
+// Teslim edildi mi? (boolean + shipmentStatus metninden türet)
+function isDeliveredComputed(o){
+  return !!(o.isDelivered || (o.shipmentStatus && o.shipmentStatus.toLowerCase().includes("teslim")));
+}
+
+// 3 tablodan sipariş çek (siparis_alan = formdaki "Siparişi Alan")
+async function getUserOrdersByAssignee(username){
+  const tables = ["queen_siparisler","esin_siparisler","tasdipli_siparisler"];
+  const all = [];
+  for(const t of tables){
+    const rows = await sbFetch(t, {
+      query: `siparis_alan=eq.${encodeURIComponent(username)}&select=*`
+    });
+    rows.forEach(r => r._tbl = t);
+    all.push(...rows);
+  }
+  // Teslim edilmeyenler üstte → sonra yeni → eski
+  return all.sort((a,b)=>{
+    const da = isDeliveredComputed(a), db = isDeliveredComputed(b);
+    if(da !== db) return da ? 1 : -1;
+    return (Number(b.siparis_no)||0) - (Number(a.siparis_no)||0);
+  });
+}
+
+// Listeyi tablo gibi render et
+function renderOrders(list){
+  if(!list.length){
+    ordersList.innerHTML = `<div class="text-slate-400 text-sm">Kayıt yok.</div>`;
+    return;
+  }
+
+  ordersList.innerHTML = list.map(o=>{
+    const teslim = isDeliveredComputed(o);
+    const statusBadge = `<span class="px-2 py-1 rounded bg-slate-700 text-[11px]">${o.shipmentStatus || "—"}</span>`;
+    const teslimBadge = teslim
+      ? `<span class="px-2 py-1 rounded bg-green-700 text-[11px]">✔ Teslim</span>`
+      : `<span class="px-2 py-1 rounded bg-red-700 text-[11px]">❌ Bekliyor</span>`;
+    const takipLink = o.kargo_takip_url
+      ? `<a href="${o.kargo_takip_url}" target="_blank" class="text-blue-400 underline">Takip</a>`
+      : "—";
+
+    return `
+      <div class="grid grid-cols-8 gap-3 items-center border-b border-slate-800 py-2
+                  hover:bg-slate-800/60 rounded">
+        <div class="font-semibold">${o.siparis_no}</div>
+        <div>${o.ad_soyad || "-"}</div>
+        <div>${o.musteri_tel || "-"}</div>
+        <div>${statusBadge}</div>
+        <div>${teslimBadge}</div>
+        <div>${o.kargo_takip_kodu || "—"}</div>
+        <div>${takipLink}</div>
+        <div>
+  ${
+    !isDeliveredComputed(o)
+      ? `<button class="px-2 py-1 text-xs bg-yellow-600 hover:bg-yellow-500 rounded edit-btn"
+                 data-no="${o.siparis_no}">
+           ✏️ Düzenle
+         </button>`
+      : `<span class="text-slate-600 text-xs">—</span>`
+  }
+</div>
+
+        <!-- DETAY: tek satır altına geniş detay bloğu -->
+        <div class="col-span-7 text-xs text-slate-300 mt-2 hidden"></div>
+      </div>
+    `;
+  }).join("");
+
+  // Satıra tıklayınca DETAY aç/kapat (müşteri adı, adres, açıklamalar, ürün bilgisi)
+  Array.from(ordersList.children).forEach((row, idx)=>{
+    row.addEventListener("click", ()=>{
+      const o = list[idx];
+      const detail = row.querySelector(".col-span-7");
+      const teslim = isDeliveredComputed(o);
+
+      detail.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-900/60 p-3 rounded border border-slate-700">
+          <div>
+            <div><b>Müşteri Adı:</b> ${o.ad_soyad || "-"}</div>
+            <div><b>Telefon:</b> ${o.musteri_tel || "-"}</div>
+            <div><b>Adres:</b> ${o.adres || "-"}</div>
+          </div>
+          <div>
+            <div><b>Kargo Aşaması (shipmentStatus):</b> ${o.shipmentStatus || "—"}</div>
+            <div><b>Teslim Edildi:</b> ${teslim ? "✔ Evet" : "❌ Hayır"}</div>
+            <div><b>Kargo Takip Kodu:</b> ${o.kargo_takip_kodu || "—"}</div>
+            <div><b>Kargo Takip Linki:</b> ${
+              o.kargo_takip_url ? `<a href="${o.kargo_takip_url}" target="_blank" class="text-blue-400 underline">Takip Et</a>` : "—"
+            }</div>
+          </div>
+          <div class="md:col-span-2">
+            <div><b>Teslimat Açıklaması:</b> ${o.teslimat_aciklama || "—"}</div>
+          </div>
+          <div class="md:col-span-2">
+            <div><b>Ürün Bilgisi:</b><br>${(o.urun_bilgisi || "").replace(/\n/g,"<br>")}</div>
+          </div>
+        </div>
+      `;
+
+      // toggle
+      detail.classList.toggle("hidden");
+    });
+  });
+}
+
+// Arama + filtre + sıralama uygula
+function applyOrdersFilters(){
+  const q = (ordersSearch.value || "").toLowerCase();
+  let list = _ordersFull.filter(o=>{
+    if(!q) return true;
+    return (o.ad_soyad||"").toLowerCase().includes(q) ||
+           (o.musteri_tel||"").toLowerCase().includes(q) ||
+           String(o.siparis_no||"").includes(q);
+  });
+
+  if(ordersFilter.value==="edildi"){
+    list = list.filter(o=> isDeliveredComputed(o));
+  }else if(ordersFilter.value==="edilmedi"){
+    list = list.filter(o=> !isDeliveredComputed(o));
+  }
+
+  if(ordersSort.value==="yeni"){
+    list.sort((a,b)=> (Number(b.siparis_no)||0)-(Number(a.siparis_no)||0));
+  }else{
+    list.sort((a,b)=> (Number(a.siparis_no)||0)-(Number(b.siparis_no)||0));
+  }
+
+  // teslim edilmeyenler yine en üstte kalsın (ikincil kural)
+  list.sort((a,b)=>{
+    const da = isDeliveredComputed(a), db = isDeliveredComputed(b);
+    if(da !== db) return da ? 1 : -1;
+    return 0;
+  });
+
+  renderOrders(list);
+}
+
+// Aç/Kapat & Yükle
+openOrders.onclick = async ()=>{
+  ordersList.innerHTML = `<div class="text-sm text-slate-400">Yükleniyor…</div>`;
+  ordersModal.classList.remove("hidden");
+
+  const username = alanEl.value?.trim() || currentUser?.username;
+  _ordersFull = await getUserOrdersByAssignee(username);
+
+  applyOrdersFilters();
+};
+closeOrders.onclick = ()=> ordersModal.classList.add("hidden");
+
+ordersSearch.oninput = applyOrdersFilters;
+ordersFilter.onchange = applyOrdersFilters;
+ordersSort.onchange   = applyOrdersFilters;
+
 // =======================================================
 // EVENTLER
 // =======================================================
@@ -773,3 +961,15 @@ toplamEl.oninput = ()=>{ autoCalcLocked=true; };
     showLogin();
   }
 })();
+// DÜZENLE butonu event delegation (her zaman çalışır)
+ordersList.addEventListener("click", (e)=>{
+  const btn = e.target.closest(".edit-btn");
+  if(!btn) return;
+
+  e.stopPropagation(); // satır tıklama (detay toggle) tetiklenmesin
+
+  const no = btn.dataset.no;
+  siparisNoEl.value = no;
+  ordersModal.classList.add("hidden");
+  loadSiparisByNo(); // siparişi forma yükle
+});
