@@ -813,15 +813,16 @@ function renderOrders(list){
     return `
       <div class="grid grid-cols-8 gap-3 items-center border-b border-slate-800 py-2
                   hover:bg-slate-800/60 rounded">
-        <div class="font-semibold">${o.siparis_no}</div>
-        <div>${o.ad_soyad || "-"}</div>
-        <div>${o.musteri_tel || "-"}</div>
-        <div>${statusBadge}</div>
-        <div>${teslimBadge}</div>
-        <div>${o.kargo_takip_kodu || "—"}</div>
-        <div>${takipLink}</div>
-        <div>
-  ${
+<div data-label="Sipariş No" class="font-semibold">${o.siparis_no}</div>
+<div data-label="Müşteri">${o.ad_soyad || "-"}</div>
+<div data-label="Telefon">${o.musteri_tel || "-"}</div>
+<div data-label="Firma">${o.firma || "-"}</div>
+<div data-label="Durum">${statusBadge}</div>
+<div data-label="Teslim">${teslimBadge}</div>
+<div data-label="Kargo Kod">${o.kargo_takip_kodu || "—"}</div>
+<div data-label="Takip">${takipLink}</div>
+
+        <div>${
     !isDeliveredComputed(o)
       ? `<button class="px-2 py-1 text-xs bg-yellow-600 hover:bg-yellow-500 rounded edit-btn"
                  data-no="${o.siparis_no}">
@@ -849,6 +850,8 @@ function renderOrders(list){
           <div>
             <div><b>Müşteri Adı:</b> ${o.ad_soyad || "-"}</div>
             <div><b>Telefon:</b> ${o.musteri_tel || "-"}</div>
+            <div><b>Firma:</b> ${o.firma || "-"}</div>
+          </div>
             <div><b>Adres:</b> ${o.adres || "-"}</div>
           </div>
           <div>

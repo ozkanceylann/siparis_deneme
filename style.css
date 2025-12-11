@@ -232,6 +232,96 @@ select:focus {
   }
 }
 
+/* =====================================================
+   📱 MOBİLDE TÜM YAZILAR VE BUTONLAR KÜÇÜLTÜLDÜ
+===================================================== */
+@media (max-width: 640px) {
+
+  /* GENEL YAZI KÜÇÜLTME */
+  body, input, select, textarea, button {
+    font-size: 13px !important;
+  }
+
+  /* Siparişlerim modal içindeki yazıları küçült */
+  #ordersModal {
+    font-size: 12px !important;
+  }
+
+  /* Satır içi yazılar */
+  #ordersList .order-row > div {
+    font-size: 12px !important;
+    padding: 2px 0;
+  }
+
+  /* DURUM ROZETLERİ (teslim-bekliyor, shipmentStatus) */
+  #ordersList span {
+    font-size: 11px !important;
+    padding: 2px 6px !important;
+  }
+
+  /* Düzenle butonu */
+  #ordersList .edit-btn {
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+  }
+
+  /* Takip Linki */
+  #ordersList a {
+    font-size: 12px !important;
+  }
+
+  /* Mobilde satır düzeni */
+  #ordersList .order-row {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+  }
+
+  /* Detay alanı tam genişlik */
+  #ordersList .order-detail {
+    font-size: 12px !important;
+    grid-column: span 2 !important;
+  }
+
+  /* Detay içi yazılar */
+  #ordersList .order-detail b {
+    font-size: 12px !important;
+  }
+
+  /* Başlıklar küçülsün */
+  #ordersModal .grid-cols-7,
+  #ordersModal .grid-cols-8,
+  #ordersModal .grid-cols-9 {
+    font-size: 11px !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Popup başlığı küçült */
+  #ordersModal h2 {
+    font-size: 16px !important;
+  }
+
+  /* Kapat X icon'u */
+  #closeOrders {
+    font-size: 20px !important;
+  }
+
+  /* Genel paddingleri küçült */
+  .p-4, .px-4, .py-4 {
+    padding: 8px !important;
+  }
+
+  /* Input alanları küçülsün */
+  input, select, textarea {
+    padding: 6px 8px !important;
+  }
+
+  /* Ana sayfadaki butonların boyutunu küçült */
+  button {
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+  }
+}
+
 
 /* =========================================================
    SCROLLBAR
