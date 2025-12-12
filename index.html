@@ -2,300 +2,182 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Sipariş Formu</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="manifest" href="./manifest.json" />
-  <link rel="stylesheet" href="./style.css" />
-  <meta name="theme-color" content="#0D1B2E" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json">
+
+
+  <title>Sipariş Sistemi</title>
+
+  <!-- ✔ FAVICON DÜZELTİLDİ -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+
+  <!-- ✔ CONFIG ÖNCE GELMEK ZORUNDA -->
+  <script src="config.js"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    .btn-mini{
+      display:inline-block;
+      padding:4px 8px;
+      font-size:12px;
+      border:none;
+      background:#0d6efd;
+      color:#fff;
+      border-radius:6px;
+      margin-left:6px;
+    }
+  </style>
+
 </head>
 
 <body>
 
-<!-- =========================== -->
-<!-- LOGIN SCREEN -->
-<!-- =========================== -->
-<div id="loginScreen" class="min-h-screen flex items-center justify-center p-6">
-  <div class="card p-6 md:p-8 w-full max-w-md">
-    <h1 class="text-2xl font-bold mb-4 text-center">Giriş Yap</h1>
+  <!-- MOBİL MENÜ -->
+  <div class="mobile-menu-btn" onclick="toggleMenu()">☰</div>
 
-    <form id="loginForm" class="space-y-4">
-      <div>
-        <label class="block text-sm mb-2">Kullanıcı Adı</label>
-        <input id="loginUsername" type="text" class="inpt w-full" autocomplete="username" required />
-      </div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <img id="brandLogo" class="sidebar-logo" alt="Logo">
+      <div id="brandTitle" class="sidebar-title"></div>
+    </div>
 
-      <div>
-        <label class="block text-sm mb-2">Şifre</label>
-        <input id="loginPassword" type="password" class="inpt w-full" autocomplete="current-password" required />
-      </div>
+    <ul class="menu">
+      <li id="tab_bekleyen"   class="active" onclick="setTab('bekleyen')">Bekleyen</li>
+      <li id="tab_hazirlandi" onclick="setTab('hazirlandi')">Hazırlandı</li>
+      <li id="tab_kargolandi" onclick="setTab('kargolandi')">Kargolandı</li>
+      <li id="tab_tamamlandi" onclick="setTab('tamamlandi')">Tamamlananlar</li>
+      <li id="tab_sorunlu"    onclick="setTab('sorunlu')">Sorunlu</li>
+      <li id="tab_iptal"      onclick="setTab('iptal')">İptal</li>
 
-      <button class="inpt w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2">
-        Giriş Yap
-      </button>
+      <!-- ✔ RAPORLAR BURADAN AÇILIYOR -->
+      <li onclick="window.location='rapor.html'">Raporlar</li>
+    </ul>
 
-      <div id="loginMessage" class="text-sm text-center"></div>
-    </form>
-  </div>
+    <button class="btn-danger" onclick="logout()">Çıkış Yap</button>
+  </aside>
+
+
+
+  <!-- ANA İÇERİK -->
+  <main class="content-area">
+
+    <div class="top-bar">
+      <input id="searchInput" type="text" placeholder="Sipariş No / İsim / Tel / Adres" />
+      <button class="btn-search" onclick="searchOrders()">Ara</button>
+      <button class="btn-clear" onclick="clearSearch()">Temizle</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="orders-table">
+        <thead>
+          <tr id="ordersHeadRow">
+            <th>No</th>
+            <th>İsim</th>
+            <th>Ürün</th>
+            <th>Tutar</th>
+            <th>Durum</th>
+            <th>Aç / Sorgula</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+    </div>
+
+    <button id="loadMoreBtn" class="btn-load-more" onclick="loadMore()">Daha Fazla</button>
+
+  </main>
+
+
+
+  <!-- MODAL -->
+  <div id="orderModal" class="modal">
+    <div class="modal-content">
+
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>Sipariş Detayı</h2>
+
+      <div id="orderDetails"></div>
+
+<div id="actionButtons" class="modal-btns">
+
+    <button id="btnPrepare" class="btn-primary" onclick="markPrepared()">Hazırla</button>
+    <button id="btnCargo" class="btn-secondary" onclick="sendToCargo()">Kargola</button>
+    <button id="btnWaiting" class="btn-waiting" onclick="setWaiting()">Bekliyor</button>
+    <button id="btnBarcode" class="btn-primary" style="display:none;" onclick="printBarcode()">Barkod Kes</button>
+
+    <button class="btn-warning" onclick="enterEditMode()">Düzenle</button>
+
+    <!-- İPTAL ET (ÜST SATIR) -->
+    <button class="btn-danger" onclick="openCancelForm()">İptal Et</button>
+
+    <!-- KAPAT (ALT SATIR) -->
+    <button class="btn-close" onclick="closeModal()">Kapat</button>
+
 </div>
 
-
-<!-- =========================== -->
-<!-- APP SCREEN -->
-<!-- =========================== -->
-<div id="appContainer" class="hidden">
-  <div class="max-w-3xl mx-auto p-6">
-    <div class="card p-6 md:p-8">
-
-      <!-- HEADER -->
-<!-- 📦 SİPARİŞLERİM (full genişlik üst bar) -->
-<button id="openOrders"
-        type="button"
-        class="block w-full text-center inpt bg-slate-700 hover:bg-slate-600 
-               text-white font-semibold py-2 rounded-lg mb-4">
-  📦 Siparişlerim
-</button>
-
-
-      <div class="flex items-start md:items-center justify-between gap-4 mb-6 flex-wrap">
-        <h1 class="text-3xl font-extrabold">SİPARİŞ FORMU</h1>
-
-        <div class="flex items-center gap-3">
-          <div class="w-40">
-            <label class="block text-xs mb-1">Sipariş No</label>
-            <input id="siparis_no" class="inpt w-full text-sm py-2" type="number" placeholder="No → Enter" />
-          </div>
-
-          <div class="flex items-center gap-2 text-sm">
-            <span id="currentUser" class="chip font-semibold"></span>
-            <span id="adminBadge" class="chip hidden bg-blue-800 text-blue-50 border-blue-500">Admin</span>
-            <button id="logoutBtn" class="chip hover:bg-red-700 hover:text-white">Çıkış</button>
-            
-          </div>
-        </div>
+      <!-- Edit Butonları -->
+      <div id="editButtons" class="modal-btns" style="display:none;">
+        <button class="btn-secondary" onclick="saveEdit()">Kaydet</button>
+        <button class="btn-danger" onclick="cancelEdit()">Vazgeç</button>
+        <button class="btn-close" onclick="closeModal()">Kapat</button>
       </div>
 
-      <!-- =========================== -->
-      <!-- FORM -->
-      <!-- =========================== -->
-      <form id="form" class="grid grid-cols-1 gap-6">
+      <!-- Geri Al -->
+      <div id="restoreButtons" class="modal-btns" style="display:none;">
+        <button class="btn-secondary" onclick="restoreOrder()">Geri Al</button>
+        <button class="btn-danger" onclick="deleteCanceledOrder()">Sil</button>
+        <button class="btn-close" onclick="closeModal()">Kapat</button>
+      </div>
 
-        <!-- Firma + Siparişi Alan YAN YANA -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm mb-2">Firma <span class="text-red-400">*</span></label>
-            <select id="firma" class="inpt w-full" required></select>
-          </div>
-
-          <div>
-            <label class="block text-sm mb-2">Siparişi Alan <span class="text-red-400">*</span></label>
-            <select id="siparisi_alan" class="inpt w-full" required></select>
-          </div>
+      <!-- İptal formu -->
+      <div id="cancelForm" style="display:none;margin-top:20px;">
+        <h3>İptal Nedeni</h3>
+        <textarea id="iptalInput" placeholder="Neden iptal ediliyor?"></textarea>
+        <div class="modal-btns">
+          <button class="btn-danger" onclick="confirmCancel()">İptal Et</button>
+          <button class="btn-close" onclick="cancelCancelForm()">Vazgeç</button>
         </div>
-
-        <!-- Müşteri Bilgileri -->
-        <div>
-          <label class="block text-sm mb-2">Müşteri İsim Soyisim <span class="text-red-400">*</span></label>
-          <input id="ad_soyad" class="inpt w-full" required />
-        </div>
-
-        <div>
-          <label class="block text-sm mb-2">Telefon No <span class="text-red-400">*</span></label>
-          <input id="telefon" class="inpt w-full" placeholder="5xx" maxlength="10" inputmode="numeric" required />
-          <div id="musteriHint" class="text-xs text-blue-300 mt-1"></div>
-        </div>
-
-        <div>
-          <label class="block text-sm mb-2">Adres <span class="text-red-400">*</span></label>
-          <textarea id="adres" class="inpt w-full" rows="3" required></textarea>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label class="block text-sm mb-2">Şehir <span class="text-red-400">*</span></label>
-            <select id="sehir" class="inpt w-full" required>
-              <option value="">Şehir seçiniz…</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm mb-2">İlçe <span class="text-red-400">*</span></label>
-            <select id="ilce" class="inpt w-full" disabled required>
-              <option value="">Önce şehir seçiniz…</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Müşteri Notu -->
-<div class="mb-4">
-  <label class="block text-sm mb-2">Müşteri Notu</label>
-  <textarea id="musteri_notu" 
-            class="inpt w-full" 
-            rows="2"
-            placeholder="Müşteriyle ilgili hatırlatma notu yazınız."></textarea>
-</div>
-
-
-        <!-- =========================== -->
-        <!-- ÇOK SATAN ÜRÜNLER -->
-        <!-- =========================== -->
-        <div>
-          <h2 class="text-xl font-semibold mb-3">Çok Satan Ürünler</h2>
-          <div id="cokSatanContainer" class="space-y-4"></div>
-        </div>
-
-        <!-- =========================== -->
-        <!-- DİĞER ÜRÜNLER -->
-        <!-- =========================== -->
-        <div>
-          <h2 class="text-xl font-semibold mb-3">Diğer Ürünler</h2>
-
-          <!-- ÜRÜN SEÇİMİ -->
-          <div class="product-box mb-4">
-            <label class="block text-sm mb-2">Ürün Seç</label>
-            <select id="digerSelect" class="inpt w-full"></select>
-
-            <!-- KG seçenekleri (radio) -->
-            <div id="digerKgOptions" class="mt-4 space-y-3"></div>
-
-            <!-- Adet -->
-            <div class="mt-3">
-              <label class="block text-sm mb-1">Adet</label>
-              <input id="digerAdet" type="number" class="inpt" value="1" min="1" />
-            </div>
-
-            <button id="digerEkleBtn"
-              type="button"
-              class="inpt w-full bg-emerald-700 hover:bg-emerald-800 text-white mt-4">
-              Ekle
-            </button>
-          </div>
-
-          <!-- Eklenen diğer ürünler -->
-          <div id="digerListeContainer" class="space-y-2"></div>
-        </div>
-
-        <!-- =========================== -->
-        <!-- ÖDEME / TOPLAM -->
-        <!-- =========================== -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-          <div>
-            <label class="block text-sm mb-2">Toplam (TL)</label>
-            <input id="toplam" type="number" class="inpt w-full" value="0" />
-            <div id="toplamHint" class="text-xs mt-1 text-slate-400"></div>
-          </div>
-
-          <div class="flex flex-col md:flex-row md:items-end md:justify-end gap-3">
-            <button id="btnUcretsiz" type="button"
-              class="inpt bg-purple-700 hover:bg-purple-800 text-white"
-              title="Ücretsiz/Değişim">
-              Ücretsiz / Değişim
-            </button>
-
-            <select id="odeme" class="inpt w-full md:w-40">
-              <option value="Nakit">Nakit</option>
-              <option value="Kart">Kart</option>
-              <option value="Peşin/Ön Ödeme">Peşin/Ön Ödeme</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- NOT -->
-        <div>
-          <label class="block text-sm mb-2">Not</label>
-          <textarea id="notlar" class="inpt w-full" rows="3"></textarea>
-        </div>
-
-        <!-- BUTTONS -->
-        <div class="grid grid-cols-2 gap-4">
-          <button id="btnIptal" type="button"
-            class="inpt bg-red-600 hover:bg-red-700 text-white">
-            Siparişi İptal Et
-          </button>
-
-          <button type="submit"
-            class="inpt bg-emerald-600 hover:bg-emerald-700 text-white">
-            Gönder
-          </button>
-        </div>
-
-        <div id="sonuc" class="text-sm mt-2"></div>
-
-      </form>
+      </div>
 
     </div>
   </div>
-</div>
 
-<!-- =========================== -->
-<!-- POPUP (modern uyarı) -->
-<!-- =========================== -->
-<div id="popup" class="popup hidden">
-  <div id="popupBox" class="popup-box">
-    <div id="popupMsg"></div>
-    <button id="popupClose" class="popup-close">Kapat</button>
-  </div>
-</div>
-<!-- =========================== -->
-<!-- 📦 SİPARİŞLER POPUP (FULL EKRAN) -->
-<!-- =========================== -->
-<div id="ordersModal" class="fixed inset-0 bg-black/70 hidden z-50">
-  <div class="max-w-5xl mx-auto bg-slate-900 text-slate-200 rounded-xl shadow-xl 
-              border border-slate-700 mt-6 mb-8 h-[calc(100vh-3rem)] flex flex-col">
-    
-    <!-- Header / Kontroller -->
-    <div class="p-4 border-b border-slate-700 flex flex-wrap gap-3 items-center">
-      <div class="text-xl font-bold mr-auto">📦 Siparişlerim</div>
-
-      <input id="ordersSearch" placeholder="Ara: ad, telefon, sipariş no"
-             class="inpt bg-slate-800 border border-slate-700 px-3 py-2 rounded w-64">
-
-      <select id="ordersFilter" class="inpt bg-slate-800 border border-slate-700 px-3 py-2 rounded">
-        <option value="hepsi">Hepsi</option>
-        <option value="edilmedi">Teslim Edilmedi</option>
-        <option value="edildi">Teslim Edildi</option>
-      </select>
-
-      <select id="ordersSort" class="inpt bg-slate-800 border border-slate-700 px-3 py-2 rounded">
-        <option value="yeni">Yeni → Eski</option>
-        <option value="eski">Eski → Yeni</option>
-      </select>
-
-      <button id="closeOrders" class="chip hover:bg-red-700 hover:text-white">Kapat</button>
-    </div>
-
-    <!-- Tablo başlık -->
-    <div class="px-4 pt-3 pb-2 text-slate-300 grid grid-cols-7 gap-3 
-                border-b border-slate-800 text-xs font-semibold">
-      <div>Sipariş No</div>
-      <div>Müşteri</div>
-      <div>Telefon</div>
-      <div>Durum</div>
-      <div>Teslim?</div>
-      <div>Kargo Kod</div>
-      <div>Takip</div>
-    </div>
-
-    <!-- Liste -->
-    <div id="ordersList" class="p-4 overflow-y-auto grow space-y-2"></div>
-  </div>
-</div>
+  <div id="alertRoot"></div>
 
 
-<!-- =========================== -->
-<!-- SCRIPTS -->
-<!-- =========================== -->
-<script src="./api.js"></script>
-<script src="./app.js"></script>
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("/service-worker.js")
-        .then(() => console.log("SW başarıyla yüklendi"))
-        .catch(err => console.log("SW hatası:", err));
-    });
-  }
+  <!-- SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+  <script>
+document.getElementById("orderModal").addEventListener("click", function(e){
+  const box = document.querySelector(".modal-content");
+  if (!box.contains(e.target)) closeModal();
+});
 </script>
+
+
+  <!-- APP -->
+  <script src="app.js" type="module"></script>
+
+  <!-- LOGO & BAŞLIK & İLK YÜKLEME -->
+  <script type="module">
+    document.addEventListener("DOMContentLoaded", async () => {
+
+      await window.waitConfig();
+
+      document.getElementById("brandLogo").src = CONFIG.logo;
+      document.getElementById("brandTitle").innerHTML =
+        CONFIG.brandName + "<br/>Sipariş Sistemi";
+
+      loadOrders(true);
+    });
+  </script>
+  <div id="alertRoot"></div>
+
 
 </body>
 </html>
